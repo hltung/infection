@@ -91,23 +91,25 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=1000, M_burn=50, k=4, conv_thr=0.05):
     
     ## generates an initial tree and initial sequence from the tree
+    graf1 = graf.copy()
     graf2 = graf.copy()
-    guess_inf1 = generateInfectionTree(graf)
+    
+    guess_inf1 = generateInfectionTree(graf1)
+    perm1 = generateSeqFromTree(graf1, guess_inf1)
+    outward1 = computeOutDegreeFromSeq(graf1, perm1)
+    
     guess_inf2 = generateInfectionTree(graf2)
-    perm1 = generateSeqFromTree(graf, guess_inf1)
     perm2 = generateSeqFromTree(graf2, guess_inf2)
-    #perm2 = generateAltSeq(graf2, guess_inf2, perm1)
-    #print(perm)
-    adjustSubtreeSizes(graf, perm1, perm1[0])
-    adjustSubtreeSizes(graf2, perm2, perm2[0])
-    outward1 = computeOutDegreeFromSeq(graf, perm1)
     outward2 = computeOutDegreeFromSeq(graf2, perm2)
+    
+    adjustSubtreeSizes(graf1, perm1, perm1[0])
+    adjustSubtreeSizes(graf2, perm2, perm2[0])
     
     n_inf1 = len(perm1)
     n_inf2 = len(perm2)
     #print(n_inf)
     
-    n = len(graf.vs)
+    n = len(graf1.vs)
     freq1 = np.zeros(n)
     freq2 = np.zeros(n)
     
@@ -120,7 +122,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=1000, M_burn
             print('loop:', ii)
         
         burn_in = ii < M_burn
-        perm1, n_inf1, freq1, outward1 = updatePerm(graf, perm1, q, n_inf1, freq1, outward1, burn_in, k, M_trans)
+        perm1, n_inf1, freq1, outward1 = updatePerm(graf1, perm1, q, n_inf1, freq1, outward1, burn_in, k, M_trans)
         perm2, n_inf2, freq2, outward2 = updatePerm(graf2, perm2, q, n_inf2, freq2, outward2, burn_in, k, M_trans)
         
         freq_sum1 = np.sum(freq1)
@@ -401,9 +403,7 @@ EFFECT: creates "parent" node attribute
 
 """
 def generateSeqFromTree(graf, guess_inf):
-    n = len(graf.vs)
-    print("is tree", len(guess_inf) == sum(graf.es["tree"]) + 1)
-    normalized_h = countAllHist(graf, guess_inf[0])[0]
+    normalized_h = countAllHist(graf, guess_inf[0], True, guess_inf)[0]
     n_inf = len(guess_inf)
     h_weight = [0] * n_inf
     for i in range(n_inf):

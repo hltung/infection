@@ -71,7 +71,7 @@ def getAncestors(graf, utilde, u = None):
         if (my_pa == None):
             return(ants)
 
-        assert graf.vs[cur_node]["subtree_size"] < graf.vs[my_pa]["subtree_size"]
+        #assert graf.vs[cur_node]["subtree_size"] < graf.vs[my_pa]["subtree_size"]
         
         if (my_pa == u):
             return(-1)
@@ -304,15 +304,11 @@ def countSubtreeSizes(graf, root, prev=None):
     
     for eid in edge_ixs:
         my_e = graf.es[eid]
-        if (not istree) and (not my_e["tree"]):
-            continue
-        
-        next_node = otherNode(my_e, root)
-            
-        if (next_node == prev):
-            continue
-        else:
-            counter = counter + countSubtreeSizes(graf, next_node, root)
+        if istree or my_e["tree"]:
+            next_node = otherNode(my_e, root)
+
+            if (next_node != prev):
+                counter = counter + countSubtreeSizes(graf, next_node, root)
         
     graf.vs[root]["subtree_size"] = counter
     return(counter)
@@ -526,10 +522,13 @@ OUTPUT: three-tuple. First: n-dim nparray of probabilities
               Third: largest hist(u,t) value, over u, in log-scale
 """
 
-def countAllHist(graf, root):
+def countAllHist(graf, root, initializing=False, tree_nodes=None):
     n = len(graf.vs)
     
     countSubtreeSizes(graf, root)
+    
+    if initializing:
+        adjustSubtreeSizes(graf, tree_nodes, root)
     
     hist = [0] * n
     
@@ -572,6 +571,14 @@ def countAllHist(graf, root):
                 continue
             
             S.append(next_node)
+            
+            if ntree <= graf.vs[next_node]["subtree_size"]:
+                print(getAncestors(graf, next_node))
+                print(root)
+                print(ntree)
+                print(graf.vs[next_node]["subtree_size"])
+                assert False
+
             
             hist[next_node] = hist[cur_node] + \
                     np.log(graf.vs[next_node]["subtree_size"] /  \
