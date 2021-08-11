@@ -403,7 +403,7 @@ EFFECT: creates "parent" node attribute
 
 """
 def generateSeqFromTree(graf, guess_inf):
-    normalized_h = countAllHist(graf, guess_inf[0], True, guess_inf)[0]
+    normalized_h = countAllHist(graf, guess_inf[0])[0]
     n_inf = len(guess_inf)
     h_weight = [0] * n_inf
     for i in range(n_inf):
