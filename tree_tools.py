@@ -71,14 +71,30 @@ def getAncestors(graf, utilde, u = None):
         if (my_pa == None):
             return(ants)
 
-        assert graf.vs[cur_node]["subtree_size"] < graf.vs[my_pa]["subtree_size"]
+        #assert graf.vs[cur_node]["subtree_size"] < graf.vs[my_pa]["subtree_size"]
         
         if (my_pa == u):
             return(-1)
         else:
             ants.append(my_pa)
             cur_node = my_pa
+
+def getUnmarkedAncestor(graf, utilde, marked, middle=False, mid_nodes=[]):
+    
+    #assert graf.vs[utilde]["pa"] != None
+    
+    cur_node = utilde
+    
+    while (True):
+        my_pa = graf.vs[cur_node]["pa"]
         
+        if my_pa in marked:
+            return cur_node
+        elif middle and my_pa not in mid_nodes:
+            return cur_node
+        else:
+            cur_node = my_pa
+
 """
 
 
@@ -410,12 +426,10 @@ NOTE: modifies "pa" attribute on nodes
       
       
 """
-def switchStart(graf, perm, k, all_weight, root_dict):
+def switchStart(graf, perm, k, h_weight, root_dict):
     mypi = [0] * k
     n = len(graf.vs)
-    h_weight = [0] * k
-    for i in range(k):
-        h_weight[i] = all_weight[perm[i]]
+    
     mypi[0] = choices(perm[0:k], h_weight)[0]
     
     #print(mypi[0])
@@ -443,14 +457,7 @@ def switchStart(graf, perm, k, all_weight, root_dict):
         v = mypi[j]
 
         if (v not in marked):
-            ancs = getAncestors(g, v)
-            
-            #print('ancs:', ancs)
-            
-            unmarked_ancs = [w for w in ancs if w not in marked]
-            
-            v_anc = unmarked_ancs[-1]            
-
+            v_anc = getUnmarkedAncestor(g, v, marked)
             old_pos = mypi_inv[v_anc]
             mypi[old_pos] = v
             mypi[j] = v_anc
@@ -485,15 +492,10 @@ def switchMiddle(graf, perm, start, k):
     
     for i in range(k):
         v = mypi[i]
-        assert graf.vs[v]["pa"] in perm[0:start + k]
+        #assert graf.vs[v]["pa"] in perm[0:start + k]
         if (graf.vs[v]["pa"] in permNodes and v not in marked):
             
-            ancs = getAncestors(graf, v)
-            #print('ancs_mid', ancs)
-            unmarked_ancs = [w for w in ancs if w in permNodes and w not in marked]
-            #print('unmarked', unmarked_ancs)
-            v_anc = unmarked_ancs[-1]
-
+            v_anc = getUnmarkedAncestor(graf, v, marked, True, permNodes)
             old_pos = mypi_inv[v_anc]
             mypi[old_pos - start] = v
             mypi[i] = v_anc
@@ -529,9 +531,7 @@ def countAllHist(graf, root):
     hist = [0] * n
     
     ntree = graf.vs[root]["subtree_size"]
-    # print("root:", root)
-    # print("root subtree", ntree)
-    # print(getAncestors(graf, root))
+    
     S = collections.deque([root]) ## queue of nodes to visit
 
     hist[root] = 0
@@ -550,9 +550,6 @@ def countAllHist(graf, root):
             if (graf.vs[next_node]["pa"] != cur_node):
                 continue
             
-            # print(next_node)
-            # print(cur_node)
-            # print(getAncestors(graf, next_node))
             S.append(next_node)
             
     S = collections.deque([root]) ## queue of nodes to visit
@@ -647,6 +644,7 @@ def countSomeHist(graf, nodes, root):
 
     return thist/np.sum(thist)
         
+
 
 """
 INPUT: "v_ls" is a list of nodes

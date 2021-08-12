@@ -130,7 +130,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=1000, M_burn
         if ii > M_burn and freq_sum1 > 0 and freq_sum2 > 0:
             norm_freq1 = freq1 / freq_sum1
             norm_freq2 = freq2 / freq_sum2
-            tv = np.max(np.abs(norm_freq1 - norm_freq2))
+            tv = np.sum(np.abs(norm_freq1 - norm_freq2)) / 2
             if ii > min_iters:
                 done = (tv < conv_thr)
             if ii % 200 == 0:
@@ -165,7 +165,6 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, M_trans):
             assert(len(valid_edges) > 0)
             my_edge = choices(valid_edges)[0]
             graf.es[my_edge]["tree"] = True
-            
             
             graf.vs[cur_vix]["pa"] = otherNode(graf.es[my_edge], cur_vix)
         countSubtreeSizes(graf, perm[0])
@@ -238,7 +237,7 @@ Potentially swap nodes in ordering
 EFFECT:     creates "tree" binary edge attribute
 
 """    
-def nodesSwap(graf, n_inf, perm, outward, h_weight, k):
+def nodesSwap(graf, n_inf, perm, outward, all_weight, k):
     cur_pos = choices(list(range(n_inf-k+1)))[0]
     M_0 = math.factorial(k) 
     w = np.zeros(len(graf.vs))
@@ -246,7 +245,9 @@ def nodesSwap(graf, n_inf, perm, outward, h_weight, k):
     if (cur_pos == 0):
         # print('switch block 0 to k')
         ## deal with root separately
-        
+        h_weight = [0] * k
+        for i in range(k):
+            h_weight[i] = all_weight[perm[i]]
         new_perm, root_dict = switchStart(graf, perm, k, h_weight, {})
         for i in range(M_0):
             p, root_dict = switchStart(graf, perm, k, h_weight, root_dict)

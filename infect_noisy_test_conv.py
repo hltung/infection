@@ -15,8 +15,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from random import *
 
-foo = Graph.Lattice(dim=[40, 40], circular=False)
-#foo = Graph.Erdos_Renyi(n=50, m=250)
+#foo = Graph.Lattice(dim=[40, 40], circular=False)
+foo = Graph.Erdos_Renyi(n=50, m=250)
 
 
 # foo = igraph.read("data/global-net.dat")
@@ -36,9 +36,9 @@ foo = Graph.Lattice(dim=[40, 40], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 1000
+n_inf = 50
 q = 0.95
-eps = 0.2
+eps = 0.1
 
 
 ## wuhan 3426
@@ -56,7 +56,7 @@ for i in range(n_trials):
     print('trial:', i)
     first = choices(list(range(n)), foo.degree())[0]
     true_order = simulateInfection(foo, first, n_inf, q)
-    freq = inferInfection(foo, q, max_iters=1000000, M_trans=500, M_burn=100, k=5)
+    freq = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=5)
     
     ordered_freq = [0] * n_inf
     
