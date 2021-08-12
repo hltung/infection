@@ -71,7 +71,7 @@ def getAncestors(graf, utilde, u = None):
         if (my_pa == None):
             return(ants)
 
-        #assert graf.vs[cur_node]["subtree_size"] < graf.vs[my_pa]["subtree_size"]
+        assert graf.vs[cur_node]["subtree_size"] < graf.vs[my_pa]["subtree_size"]
         
         if (my_pa == u):
             return(-1)
@@ -410,14 +410,12 @@ NOTE: modifies "pa" attribute on nodes
       
       
 """
-def switchStart(graf, perm, k, is_updating = True, h_weight = [], root_dict = {}):
+def switchStart(graf, perm, k, all_weight, root_dict):
     mypi = [0] * k
     n = len(graf.vs)
-    if is_updating:
-        normalized_h = countAllHist(graf, perm[0])[0]
-        h_weight = [0] * k
-        for i in range(k):
-            h_weight[i] = normalized_h[perm[i]]
+    h_weight = [0] * k
+    for i in range(k):
+        h_weight[i] = all_weight[perm[i]]
     mypi[0] = choices(perm[0:k], h_weight)[0]
     
     #print(mypi[0])
@@ -462,7 +460,7 @@ def switchStart(graf, perm, k, is_updating = True, h_weight = [], root_dict = {}
         marked[mypi[j]] = 1
             
     
-    return mypi, h_weight, root_dict 
+    return mypi, root_dict 
 
 
 
@@ -569,15 +567,7 @@ def countAllHist(graf, root):
                 continue
             
             S.append(next_node)
-            
-            if ntree <= graf.vs[next_node]["subtree_size"]:
-                print(getAncestors(graf, next_node))
-                print(root)
-                print(ntree)
-                print(graf.vs[next_node]["subtree_size"])
-                assert False
-
-            
+                        
             hist[next_node] = hist[cur_node] + \
                     np.log(graf.vs[next_node]["subtree_size"] /  \
                            (ntree - graf.vs[next_node]["subtree_size"]))

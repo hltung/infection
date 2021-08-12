@@ -144,8 +144,10 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=1000, M_burn
 def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, M_trans):
     if random() < 0.5:
         ## Inner transposition loop, swapping
+        
+        h_weight = countAllHist(graf, perm[0])[0]
         for jj in range(M_trans):
-            perm, outward, w = nodesSwap(graf, n_inf, perm, outward, k)
+            perm, outward, w = nodesSwap(graf, n_inf, perm, outward, h_weight, k)
             
             if not burn_in:
                 for idx in range(k):
@@ -236,7 +238,7 @@ Potentially swap nodes in ordering
 EFFECT:     creates "tree" binary edge attribute
 
 """    
-def nodesSwap(graf, n_inf, perm, outward, k):
+def nodesSwap(graf, n_inf, perm, outward, h_weight, k):
     cur_pos = choices(list(range(n_inf-k+1)))[0]
     M_0 = math.factorial(k) 
     w = np.zeros(len(graf.vs))
@@ -245,9 +247,9 @@ def nodesSwap(graf, n_inf, perm, outward, k):
         # print('switch block 0 to k')
         ## deal with root separately
         
-        new_perm, h_weight, root_dict = switchStart(graf, perm, k, root_dict={})
+        new_perm, root_dict = switchStart(graf, perm, k, h_weight, {})
         for i in range(M_0):
-            p, h_weight, root_dict = switchStart(graf, perm, k, False, h_weight, root_dict)
+            p, root_dict = switchStart(graf, perm, k, h_weight, root_dict)
             out = computeOutDegreeFromSeq(graf, p)
             w[p[0]] = w[p[0]] + 1/np.prod(out[1:])
         
