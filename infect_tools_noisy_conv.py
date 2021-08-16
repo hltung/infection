@@ -133,6 +133,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=1000, M_burn
             tv = np.sum(np.abs(norm_freq1 - norm_freq2)) / 2
             if ii > min_iters:
                 done = (tv < conv_thr)
+                print('total loops:', ii)
             if ii % 200 == 0:
                 print(tv)
         ii = ii + 1
@@ -145,7 +146,7 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, M_trans):
     if random() < 0.5:
         ## Inner transposition loop, swapping
         
-        h_weight = countAllHist(graf, perm[0])[0]
+        h_weight = countAllHist(graf, perm[0], False)[0]
         for jj in range(M_trans):
             perm, outward, w = nodesSwap(graf, n_inf, perm, outward, h_weight, k)
             
@@ -525,6 +526,17 @@ def computeOutDegreeFromSeq(graf, perm, end=-1):
         
     return(outward)
 
+
+def getConfidenceSet(freq, eps):
+    tot = 0
+    sorted_inds = np.flip(np.argsort(freq))
+    cred_set = []
+    for k in sorted_inds:
+        cred_set.append(k)
+        tot = tot + freq[k]
+        if tot > 1 - eps:
+            return cred_set
+    
 
 
 def infnb(graf, vix):    

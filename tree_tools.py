@@ -522,10 +522,11 @@ OUTPUT: three-tuple. First: n-dim nparray of probabilities
               Third: largest hist(u,t) value, over u, in log-scale
 """
 
-def countAllHist(graf, root):
+def countAllHist(graf, root, get_subtree_sz=True):
     n = len(graf.vs)
     
-    countSubtreeSizes(graf, root)
+    if get_subtree_sz:
+        countSubtreeSizes(graf, root)
     
 
     hist = [0] * n
