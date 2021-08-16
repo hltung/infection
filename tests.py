@@ -27,10 +27,24 @@ def smallLatticeTest():
     freq2 = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
     assert np.sum(np.abs(freq - freq2))/2 < 0.1
     
+def smallNoisyLatticeTest():
+    foo = Graph.Lattice(dim=[4, 4], circular=False)    
+    n_inf = 10
+    q = 0.3    
+    n = len(foo.vs)
+    
+    first = choices(list(range(n)), foo.degree())[0]
+    true_order = simulateInfection(foo, first, n_inf, q)
+    
+    freq = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
+    assert np.abs(np.sum(freq) - 1) < 1e-3
+    freq2 = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
+    assert np.sum(np.abs(freq - freq2))/2 < 0.1
+    
 def largeLatticeTest():
     foo = Graph.Lattice(dim=[4, 4], circular=False)    
     n_inf = 10
-    q = 0.9   
+    q = 0.95   
     n = len(foo.vs)
     
     first = choices(list(range(n)), foo.degree())[0]
@@ -44,7 +58,21 @@ def largeLatticeTest():
 def largeNoisyLatticeTest():
     foo = Graph.Lattice(dim=[40, 40], circular=False)    
     n_inf = 100
-    q = 0.8 
+    q = 0.7
+    n = len(foo.vs)
+    
+    first = choices(list(range(n)), foo.degree())[0]
+    true_order = simulateInfection(foo, first, n_inf, q)
+    
+    freq = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
+    assert np.abs(np.sum(freq) - 1) < 1e-3
+    freq2 = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
+    assert np.sum(np.abs(freq - freq2))/2 < 0.1
+
+def erdosRenyiTest():
+    foo = Graph.Erdos_Renyi(n=50, m=250)
+    n_inf = 20
+    q = 0.95   
     n = len(foo.vs)
     
     first = choices(list(range(n)), foo.degree())[0]
@@ -55,4 +83,20 @@ def largeNoisyLatticeTest():
     freq2 = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
     assert np.sum(np.abs(freq - freq2))/2 < 0.1
     
+def airportTest():
+    foo = igraph.read("data/global-net.dat")
+    foo.delete_vertices(0)
+    foo.to_undirected()
+    foo.simplify()
     
+    n_inf = 50
+    q = 0.9   
+    n = len(foo.vs)
+    
+    first = choices(list(range(n)), foo.degree())[0]
+    true_order = simulateInfection(foo, first, n_inf, q)
+    
+    freq = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
+    assert np.abs(np.sum(freq) - 1) < 1e-3
+    freq2 = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
+    assert np.sum(np.abs(freq - freq2))/2 < 0.1
