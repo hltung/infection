@@ -14,6 +14,7 @@ import scipy.stats
 import numpy as np
 import matplotlib.pyplot as plt
 from random import *
+import time 
 
 foo = Graph.Lattice(dim=[40, 40], circular=False)
 #foo = Graph.Erdos_Renyi(n=50, m=250)
@@ -36,7 +37,7 @@ foo = Graph.Lattice(dim=[40, 40], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 100
+n_inf = 40
 q = 0.95
 eps = 0.1
 
@@ -50,13 +51,22 @@ eps = 0.1
 #tmp = generateSeqFromTree(foo)
 #outward = computeOutDegreeFromSeq(foo, tmp)
 
-n_trials = 20
+
+n_trials = 5
 in_set = 0
+tot_time = 0
 for i in range(n_trials):
     print('trial:', i)
     first = choices(list(range(n)), foo.degree())[0]
     true_order = simulateInfection(foo, first, n_inf, q)
-    freq = inferInfection(foo, q, min_iters=1000, max_iters=1000000, M_trans=500, M_burn=100, k=4)
+    start = time.time()
+    
+    freq = inferInfection(foo, q, min_iters=200, max_iters=20000, M_burn=50, k=4, k_mid=10)
+    #freq = inferInfection(foo, q, min_iters=1000, max_iters=1000000, M_trans=500, M_burn=100, k=4)
+    end = time.time()
+    print('time:', end - start)
+    tot_time = tot_time + end - start
+
     
     ordered_freq = [0] * n_inf
     
@@ -90,7 +100,7 @@ for i in range(n_trials):
         in_set = in_set + 1
     print(in_set)
 print('proportion in credible set:', in_set / n_trials)
-
+print('avg time:', tot_time/ n_trials)
 
     
 # inf_ixs = [vix for vix in range(n) if foo.vs[vix]["infected"]]

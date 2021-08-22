@@ -39,7 +39,7 @@ def smallNoisyLatticeTest():
     freq = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
     assert np.abs(np.sum(freq) - 1) < 1e-3
     freq2 = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
-    assert np.sum(np.abs(freq - freq2))/2 < 0.1
+    assert np.sum(np.abs(freq - freq2))/2 < 0.2
     
 def largeLatticeTest():
     foo = Graph.Lattice(dim=[4, 4], circular=False)    
@@ -81,7 +81,7 @@ def erdosRenyiTest():
     freq = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
     assert np.abs(np.sum(freq) - 1) < 1e-3
     freq2 = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
-    assert np.sum(np.abs(freq - freq2))/2 < 0.1
+    assert np.sum(np.abs(freq - freq2))/2 < 0.15
     
 def airportTest():
     foo = igraph.read("data/global-net.dat")
@@ -99,4 +99,4 @@ def airportTest():
     freq = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
     assert np.abs(np.sum(freq) - 1) < 1e-3
     freq2 = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
-    assert np.sum(np.abs(freq - freq2))/2 < 0.1
+    assert np.sum(np.abs(freq - freq2))/2 < 0.2

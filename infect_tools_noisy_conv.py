@@ -88,7 +88,7 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=1000, M_burn=50, k=4, conv_thr=0.05):
+def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=50, k=4, k_mid=10, conv_thr=0.05):
     
     ## generates an initial tree and initial sequence from the tree
     graf1 = graf.copy()
@@ -122,8 +122,8 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=1000, M_burn
             print('loop:', ii)
         
         burn_in = ii < M_burn
-        perm1, n_inf1, freq1, outward1 = updatePerm(graf1, perm1, q, n_inf1, freq1, outward1, burn_in, k, M_trans)
-        perm2, n_inf2, freq2, outward2 = updatePerm(graf2, perm2, q, n_inf2, freq2, outward2, burn_in, k, M_trans)
+        perm1, n_inf1, freq1, outward1 = updatePerm(graf1, perm1, q, n_inf1, freq1, outward1, burn_in, k, k_mid, M_trans)
+        perm2, n_inf2, freq2, outward2 = updatePerm(graf2, perm2, q, n_inf2, freq2, outward2, burn_in, k, k_mid, M_trans)
         
         freq_sum1 = np.sum(freq1)
         freq_sum2 = np.sum(freq2)
@@ -131,7 +131,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=1000, M_burn
             norm_freq1 = freq1 / freq_sum1
             norm_freq2 = freq2 / freq_sum2
             tv = np.sum(np.abs(norm_freq1 - norm_freq2)) / 2
-            if ii > min_iters:
+            if ii > min_iters + M_burn:
                 done = (tv < conv_thr)
                 if done:
                     print('total loops:', ii)
@@ -144,20 +144,20 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=1000, M_burn
     return(freq1 / np.sum(freq1))
     
 
-def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, M_trans):
+def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
     if random() < 0.5:
         ## Inner transposition loop, swapping
         
         h_weight = countAllHist(graf, perm[0], False)[0]
         for jj in range(M_trans):
-            perm, outward, w = nodesSwap(graf, n_inf, perm, outward, h_weight, k)
+            perm, outward, w = nodesSwap(graf, n_inf, perm, outward, h_weight, k, k_mid)
             
             if not burn_in:
                 for idx in range(k):
                     freq = w + freq
         ## re-orient edges, pick tree in a way that sequence from perm preserved
         graf.es["tree"] = False
-        
+        #tree_start = time.time()
         for kk in range(1,n_inf):
             cur_vix = perm[kk]
             
@@ -171,11 +171,14 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, M_trans):
             
             graf.vs[cur_vix]["pa"] = otherNode(graf.es[my_edge], cur_vix)
         countSubtreeSizes(graf, perm[0])
+        #tree_end = time.time()
+        #print('remake tree:', tree_end - tree_start)
     else:
+        # change_len_start = time.time()
         perm, outward = changeLength(graf, n_inf, perm, outward, q)
         n_inf = len(perm)
-            
-        
+        # change_len_end = time.time()            
+        # print('change_len:', change_len_end - change_len_start)
     return perm, n_inf, freq, outward 
 
 """
@@ -240,12 +243,13 @@ Potentially swap nodes in ordering
 EFFECT:     creates "tree" binary edge attribute
 
 """    
-def nodesSwap(graf, n_inf, perm, outward, all_weight, k):
-    cur_pos = choices(list(range(n_inf-k+1)))[0]
+def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
+    cur_pos = choices(list(range(n_inf-k_mid+1)))[0]
     M_0 = math.factorial(k) 
     w = np.zeros(len(graf.vs))
    
     if (cur_pos == 0):
+        #start_block_start = time.time()
         # print('switch block 0 to k')
         ## deal with root separately
         h_weight = [0] * k
@@ -267,20 +271,25 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k):
             perm[0:k] = new_perm
             outward[0:k] = out_new
         adjustSubtreeSizes(graf, perm[0:k], perm[0])
-    
-            
+        #start_block_end = time.time()
+        #print('start blck:', start_block_end - start_block_start)
+        
     else:
         # print('switch block start to start + k')
 
         ## regular swapping
-        ## cur_vix NOT rot
-        pot_perm = switchMiddle(graf, perm, cur_pos, k)
-        new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k)
-        denom1 = np.prod(outward[cur_pos:cur_pos + k])
+        #mid_switch_start = time.time()
+        
+        pot_perm = switchMiddle(graf, perm, cur_pos, k_mid)
+        new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
+        denom1 = np.prod(outward[cur_pos:cur_pos + k_mid])
         denom2 = np.prod(new_out_subseq)
         
         if (random() < min(1, denom1/denom2)):
             perm = pot_perm
+            outward[cur_pos: cur_pos + k_mid] = new_out_subseq
+        #mid_switch_end = time.time()
+        #print('mid block', mid_switch_end - mid_switch_start)
     # print(perm)
     # # print('\n')
     # # print(n_inf)
