@@ -118,7 +118,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
     done = False
     
     while not done and ii < max_iters:
-        if ii%200 == 0:
+        if ii%500 == 0:
             print('loop:', ii)
         
         burn_in = ii < M_burn
@@ -136,7 +136,31 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
                 if done:
                     print('total loops:', ii)
                     break
-            if ii % 200 == 0:
+                # elif ii > 2000 + M_burn and tv > 0.1:
+                #     graf1 = graf.copy()
+                #     graf2 = graf.copy()
+                    
+                #     guess_inf1 = generateInfectionTree(graf1)
+                #     perm1 = generateSeqFromTree(graf1, guess_inf1)
+                #     outward1 = computeOutDegreeFromSeq(graf1, perm1)
+                    
+                #     guess_inf2 = generateInfectionTree(graf2)
+                #     perm2 = generateSeqFromTree(graf2, guess_inf2)
+                #     outward2 = computeOutDegreeFromSeq(graf2, perm2)
+                    
+                #     adjustSubtreeSizes(graf1, perm1, perm1[0])
+                #     adjustSubtreeSizes(graf2, perm2, perm2[0])
+                    
+                #     n_inf1 = len(perm1)
+                #     n_inf2 = len(perm2)
+                #     #print(n_inf)
+                    
+                #     freq1 = np.zeros(n)
+                #     freq2 = np.zeros(n)
+                    
+                #     ii = 0
+                
+            if ii % 500 == 0:
                 print(tv)
         ii = ii + 1
     
@@ -282,10 +306,19 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
         
         pot_perm = switchMiddle(graf, perm, cur_pos, k_mid)
         new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
-        denom1 = np.prod(outward[cur_pos:cur_pos + k_mid])
-        denom2 = np.prod(new_out_subseq)
+        thr = np.prod(np.divide(outward[cur_pos:cur_pos + k_mid], new_out_subseq))
         
-        if (random() < min(1, denom1/denom2)):
+        # if thr < 0:
+        #     print(outward)
+        #     print(outward[cur_pos: cur_pos + k_mid])
+        #     print(perm)
+        #     print(new_out_subseq)
+        #     print(pot_perm)
+        #     assert False
+        # if (random() < 0.1):
+        #     print(thr)
+        
+        if (random() < min(1, thr)):
             perm = pot_perm
             outward[cur_pos: cur_pos + k_mid] = new_out_subseq
         #mid_switch_end = time.time()
@@ -499,7 +532,7 @@ def computeOutDegreeSubseq(graf, perm, old_out, start, k):
             prev = old_out
 
             ii_nbs = graf.neighbors(perm[ii + start])
-            num_backward = len([vix for vix in ii_nbs if vix in perm[start:start+ii]])
+            num_backward = len([vix for vix in ii_nbs if vix in perm[0:start+ii]])
         
             outward[ii] = prev - num_backward + (len(ii_nbs) - num_backward)
         else:
@@ -507,7 +540,7 @@ def computeOutDegreeSubseq(graf, perm, old_out, start, k):
             prev = outward[ii - 1]
         
             ii_nbs = graf.neighbors(perm[ii + start])
-            num_backward = len([vix for vix in ii_nbs if vix in perm[start:start+ii]])
+            num_backward = len([vix for vix in ii_nbs if vix in perm[0:start+ii]])
         
             outward[ii] = prev - num_backward + (len(ii_nbs) - num_backward)
         

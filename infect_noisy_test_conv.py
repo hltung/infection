@@ -16,7 +16,9 @@ import matplotlib.pyplot as plt
 from random import *
 import time 
 
-foo = Graph.Lattice(dim=[40, 40], circular=False)
+foo = Graph.Lattice(dim=[60, 60], circular=False)
+
+
 #foo = Graph.Erdos_Renyi(n=50, m=250)
 
 
@@ -37,9 +39,10 @@ foo = Graph.Lattice(dim=[40, 40], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 40
-q = 0.95
+n_inf = 100
+q = 1
 eps = 0.1
+
 
 
 ## wuhan 3426
@@ -51,21 +54,24 @@ eps = 0.1
 #tmp = generateSeqFromTree(foo)
 #outward = computeOutDegreeFromSeq(foo, tmp)
 
+#50000 is sufficient maxiter for 100 nodes
+#100000 is suffcient maxiter for 200 nodes
 
 n_trials = 5
 in_set = 0
-tot_time = 0
+times = []
+
 for i in range(n_trials):
-    print('trial:', i)
     first = choices(list(range(n)), foo.degree())[0]
-    true_order = simulateInfection(foo, first, n_inf, q)
+    true_order = simulateInfection(foo, first, n_inf, q)    
+    print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=200, max_iters=20000, M_burn=50, k=4, k_mid=10)
+    freq = inferInfection(foo, q, min_iters=400, max_iters=100000, M_burn=100, k=4, k_mid=8)
     #freq = inferInfection(foo, q, min_iters=1000, max_iters=1000000, M_trans=500, M_burn=100, k=4)
     end = time.time()
     print('time:', end - start)
-    tot_time = tot_time + end - start
+    times.append(end - start)
 
     
     ordered_freq = [0] * n_inf
@@ -100,7 +106,7 @@ for i in range(n_trials):
         in_set = in_set + 1
     print(in_set)
 print('proportion in credible set:', in_set / n_trials)
-print('avg time:', tot_time/ n_trials)
+print('times:', times)
 
     
 # inf_ixs = [vix for vix in range(n) if foo.vs[vix]["infected"]]

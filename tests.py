@@ -13,6 +13,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from random import *
 
+
+def outSubseqTest():
+    foo = Graph.Lattice(dim=[4, 4], circular=False)    
+    perm = [0, 1, 2, 5, 4]
+    out = computeOutDegreeFromSeq(foo, perm)
+    perm = [0, 1, 5, 2, 4]
+    out = computeOutDegreeSubseq(foo, perm, out[1], 2, 3)
+    
 def smallLatticeTest():
     foo = Graph.Lattice(dim=[4, 4], circular=False)    
     n_inf = 10
@@ -100,3 +108,5 @@ def airportTest():
     assert np.abs(np.sum(freq) - 1) < 1e-3
     freq2 = inferInfection(foo, q, max_iters=1000000, M_trans=200, M_burn=100, k=4)
     assert np.sum(np.abs(freq - freq2))/2 < 0.2
+
+outSubseqTest()
