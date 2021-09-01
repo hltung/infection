@@ -40,7 +40,7 @@ n = len(foo.vs)
 m = len(foo.es)
 
 n_inf = 100
-q = 1
+q = 0.95
 eps = 0.1
 
 

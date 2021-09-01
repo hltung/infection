@@ -130,9 +130,9 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
         if ii > M_burn and freq_sum1 > 0 and freq_sum2 > 0:
             norm_freq1 = freq1 / freq_sum1
             norm_freq2 = freq2 / freq_sum2
-            tv = np.sum(np.abs(norm_freq1 - norm_freq2)) / 2
+            dist = np.sqrt(np.sum(np.square(np.sqrt(norm_freq1) - np.sqrt(norm_freq2)))/ 2)
             if ii > min_iters + M_burn:
-                done = (tv < conv_thr)
+                done = (dist < conv_thr)
                 if done:
                     print('total loops:', ii)
                     break
@@ -161,7 +161,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
                 #     ii = 0
                 
             if ii % 500 == 0:
-                print(tv)
+                print(dist)
         ii = ii + 1
     
     print("done:", done)
