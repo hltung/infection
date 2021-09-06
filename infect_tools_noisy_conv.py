@@ -98,6 +98,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
     perm1 = generateSeqFromTree(graf1, guess_inf1)
     outward1 = computeOutDegreeFromSeq(graf1, perm1)
     
+    
     guess_inf2 = generateInfectionTree(graf2)
     perm2 = generateSeqFromTree(graf2, guess_inf2)
     outward2 = computeOutDegreeFromSeq(graf2, perm2)
@@ -109,6 +110,9 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
     n_inf2 = len(perm2)
     #print(n_inf)
     
+    k_mid1 = k_mid
+    k_mid2 = k_mid
+    
     n = len(graf1.vs)
     freq1 = np.zeros(n)
     freq2 = np.zeros(n)
@@ -116,21 +120,23 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
     ## Outer LOOP
     ii = 0
     done = False
+    dist = 0
+    prop_accs = []
     
     while not done and ii < max_iters:
-        if ii%500 == 0:
+        if ii%200 == 0:
             print('loop:', ii)
         
         burn_in = ii < M_burn
-        perm1, n_inf1, freq1, outward1 = updatePerm(graf1, perm1, q, n_inf1, freq1, outward1, burn_in, k, k_mid, M_trans)
-        perm2, n_inf2, freq2, outward2 = updatePerm(graf2, perm2, q, n_inf2, freq2, outward2, burn_in, k, k_mid, M_trans)
+        perm1, n_inf1, freq1, outward1, prop_acc1 = updatePerm(graf1, perm1, q, n_inf1, freq1, outward1, burn_in, k, k_mid1, M_trans)
+        perm2, n_inf2, freq2, outward2, prop_acc2 = updatePerm(graf2, perm2, q, n_inf2, freq2, outward2, burn_in, k, k_mid2, M_trans)
         
         freq_sum1 = np.sum(freq1)
         freq_sum2 = np.sum(freq2)
         if ii > M_burn and freq_sum1 > 0 and freq_sum2 > 0:
             norm_freq1 = freq1 / freq_sum1
             norm_freq2 = freq2 / freq_sum2
-            dist = np.sqrt(np.sum(np.square(np.sqrt(norm_freq1) - np.sqrt(norm_freq2)))/ 2)
+            dist = np.linalg.norm(norm_freq1 - norm_freq2)
             if ii > min_iters + M_burn:
                 done = (dist < conv_thr)
                 if done:
@@ -160,8 +166,19 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
                     
                 #     ii = 0
                 
-            if ii % 500 == 0:
+            if ii % 200 == 0:
                 print(dist)
+        if prop_acc1 < 0.8 and prop_acc1 > 0 and k_mid1 > 5:
+            k_mid1 = k_mid1 - 1
+            print('loop:', ii)
+            print(dist)
+            print('k ', k_mid1)
+        
+        if prop_acc2 < 0.8 and prop_acc2 > 0 and k_mid2 > 5:
+            k_mid2 = k_mid2 - 1
+            
+        prop_accs.append(prop_acc1)
+        #print(prop_acc1)
         ii = ii + 1
     
     print("done:", done)
@@ -169,13 +186,13 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
     
 
 def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
-    if random() < 0.5:
-        ## Inner transposition loop, swapping
-        
+    tot_acc = 0
+    if random() < 0.6:
+        ## Inner transposition loop, swapping        
         h_weight = countAllHist(graf, perm[0], False)[0]
         for jj in range(M_trans):
-            perm, outward, w = nodesSwap(graf, n_inf, perm, outward, h_weight, k, k_mid)
-            
+            perm, outward, w, acc = nodesSwap(graf, n_inf, perm, outward, h_weight, k, k_mid)
+            tot_acc = tot_acc + acc
             if not burn_in:
                 for idx in range(k):
                     freq = w + freq
@@ -195,15 +212,17 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
             
             graf.vs[cur_vix]["pa"] = otherNode(graf.es[my_edge], cur_vix)
         countSubtreeSizes(graf, perm[0])
+        tot_acc = tot_acc / M_trans 
         #tree_end = time.time()
         #print('remake tree:', tree_end - tree_start)
     else:
         # change_len_start = time.time()
-        perm, outward = changeLength(graf, n_inf, perm, outward, q)
+        perm, outward, tot_acc = changeLength(graf, n_inf, perm, outward, q)
+        
         n_inf = len(perm)
         # change_len_end = time.time()            
         # print('change_len:', change_len_end - change_len_start)
-    return perm, n_inf, freq, outward 
+    return perm, n_inf, freq, outward, tot_acc
 
 """
 Propose lengthening or shortening ordering 
@@ -213,13 +232,15 @@ EFFECT:     creates "tree" binary edge attribute
 """   
 def changeLength(graf, n_inf, perm, outward, q):
     n = len(graf.vs)
+    acc = 0
+    #assert len(perm) == n_inf
     if random() < 0.5:
         # propose increasing ordering
         if random() < 1-q and n_inf < n:
-            n_inf = n_inf + 1
+            acc = 1
             e_list = []
             
-            for i in range(n_inf-1):
+            for i in range(n_inf):
                 pot_edges = graf.incident(perm[i])
                 valid_edges = [eix for eix in pot_edges if 
                                otherNode(graf.es[eix], perm[i]) not in perm]
@@ -236,18 +257,21 @@ def changeLength(graf, n_inf, perm, outward, q):
             else:
                 graf.vs[leaf]["pa"] = head
             perm.append(leaf)
-            ii_nbs = graf.neighbors(tail)
+            ii_nbs = graf.neighbors(leaf)
             graf.vs[leaf]["subtree_size"] = 0
             ancs = getAncestors(graf, leaf)
             for v in ancs:
                 graf.vs[v]["subtree_size"] = graf.vs[v]["subtree_size"] + 1
             
-            prev = outward[n_inf - 2]
+            prev = outward[-1]
             num_backward = len([vix for vix in ii_nbs if vix in perm])
             outward.append(prev - num_backward + (len(ii_nbs) - num_backward))
+            n_inf = n_inf + 1
+            
     else:
         # propose decreasing ordering
-        if not graf.vs[perm[-1]]["detected"]:   
+        if not graf.vs[perm[-1]]["detected"]:
+            acc = 1
             ancs = getAncestors(graf, perm[-1])
             for v in ancs:
                 graf.vs[v]["subtree_size"] = graf.vs[v]["subtree_size"] - 1
@@ -257,8 +281,14 @@ def changeLength(graf, n_inf, perm, outward, q):
             n_inf = n_inf - 1
             perm = perm[:-1]
             outward = outward[:-1]
-            
-    return perm, outward
+    
+    orig_out = computeOutDegreeFromSeq(graf, perm)
+    if outward != orig_out:
+        print(perm)
+        print(orig_out)
+        print(outward)
+        assert False
+    return perm, outward, acc
 
 
 """
@@ -268,13 +298,14 @@ EFFECT:     creates "tree" binary edge attribute
 
 """    
 def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
+    acc = 0
     cur_pos = choices(list(range(n_inf-k_mid+1)))[0]
     M_0 = math.factorial(k) 
     w = np.zeros(len(graf.vs))
    
     if (cur_pos == 0):
         #start_block_start = time.time()
-        # print('switch block 0 to k')
+        #print('switch block 0 to k')
         ## deal with root separately
         h_weight = [0] * k
         for i in range(k):
@@ -294,18 +325,40 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
         if random() < min(1, denom1/denom2):
             perm[0:k] = new_perm
             outward[0:k] = out_new
+            acc = 1
         adjustSubtreeSizes(graf, perm[0:k], perm[0])
         #start_block_end = time.time()
         #print('start blck:', start_block_end - start_block_start)
         
     else:
-        # print('switch block start to start + k')
+        #print('switch block start to start + k')
 
         ## regular swapping
         #mid_switch_start = time.time()
         
         pot_perm = switchMiddle(graf, perm, cur_pos, k_mid)
         new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
+        
+        #test 
+        new_out = computeOutDegreeFromSeq(graf, pot_perm)
+        orig_out = computeOutDegreeFromSeq(graf, perm)
+        if outward != orig_out:
+            print(k_mid)
+            print(cur_pos)
+            print(perm)
+            print(orig_out)
+            print(outward)
+            assert False
+        
+        if new_out[cur_pos:cur_pos + k_mid] != new_out_subseq:
+            print(k_mid)
+            print(cur_pos)
+            print(pot_perm)
+            print(new_out)
+            print(new_out_subseq)
+            print(outward[cur_pos - 1])
+            assert False
+
         thr = np.prod(np.divide(outward[cur_pos:cur_pos + k_mid], new_out_subseq))
         
         # if thr < 0:
@@ -319,6 +372,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
         #     print(thr)
         
         if (random() < min(1, thr)):
+            acc = 1
             perm = pot_perm
             outward[cur_pos: cur_pos + k_mid] = new_out_subseq
         #mid_switch_end = time.time()
@@ -339,7 +393,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
     #             print(v)
     #             print(getAncestors(graf, v))
     #             assert False
-    return perm, outward, w
+    return perm, outward, w, acc
 
 
 

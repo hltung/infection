@@ -501,10 +501,11 @@ def switchMiddle(graf, perm, start, k):
             mypi_inv[v] = old_pos
             
         marked[mypi[i]] = 1
-            
-    perm[start: start + k] = mypi
     
-    return perm
+    new_perm = perm.copy()
+    new_perm[start: start + k] = mypi
+    
+    return new_perm
 
 
 """

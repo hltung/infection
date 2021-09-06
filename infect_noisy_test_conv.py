@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from random import *
 import time 
 
-foo = Graph.Lattice(dim=[60, 60], circular=False)
+foo = Graph.Lattice(dim=[10, 10], circular=False)
 
 
 #foo = Graph.Erdos_Renyi(n=50, m=250)
@@ -39,9 +39,9 @@ foo = Graph.Lattice(dim=[60, 60], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 100
+n_inf = 20
 q = 0.95
-eps = 0.1
+eps = 0.2
 
 
 
@@ -67,7 +67,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=400, max_iters=100000, M_burn=100, k=4, k_mid=8)
+    freq = inferInfection(foo, q, min_iters=400, max_iters=5000, M_burn=100, k=4, k_mid=8)
     #freq = inferInfection(foo, q, min_iters=1000, max_iters=1000000, M_trans=500, M_burn=100, k=4)
     end = time.time()
     print('time:', end - start)
