@@ -124,7 +124,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
     prop_accs = []
     
     while not done and ii < max_iters:
-        if ii%200 == 0:
+        if ii%100 == 0:
             print('loop:', ii)
         
         burn_in = ii < M_burn
@@ -166,7 +166,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
                     
                 #     ii = 0
                 
-            if ii % 200 == 0:
+            if ii % 100 == 0:
                 print(dist)
         if prop_acc1 < 0.8 and prop_acc1 > 0 and k_mid1 > 5:
             k_mid1 = k_mid1 - 1
@@ -339,26 +339,6 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
         pot_perm = switchMiddle(graf, perm, cur_pos, k_mid)
         new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
         
-        #test 
-        new_out = computeOutDegreeFromSeq(graf, pot_perm)
-        orig_out = computeOutDegreeFromSeq(graf, perm)
-        if outward != orig_out:
-            print(k_mid)
-            print(cur_pos)
-            print(perm)
-            print(orig_out)
-            print(outward)
-            assert False
-        
-        if new_out[cur_pos:cur_pos + k_mid] != new_out_subseq:
-            print(k_mid)
-            print(cur_pos)
-            print(pot_perm)
-            print(new_out)
-            print(new_out_subseq)
-            print(outward[cur_pos - 1])
-            assert False
-
         thr = np.prod(np.divide(outward[cur_pos:cur_pos + k_mid], new_out_subseq))
         
         # if thr < 0:
