@@ -168,17 +168,17 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
                 
             if ii % 100 == 0:
                 print(dist)
-        if prop_acc1 < 0.8 and prop_acc1 > 0 and k_mid1 > 5:
-            k_mid1 = k_mid1 - 1
-            print('loop:', ii)
-            print(dist)
-            print('k ', k_mid1)
+        # if prop_acc1 < 0.8 and prop_acc1 > 0 and k_mid1 > 5:
+        #     k_mid1 = k_mid1 - 1
+        #     print('loop:', ii)
+        #     print(dist)
+        #     print('k ', k_mid1)
         
-        if prop_acc2 < 0.8 and prop_acc2 > 0 and k_mid2 > 5:
-            k_mid2 = k_mid2 - 1
+        # if prop_acc2 < 0.8 and prop_acc2 > 0 and k_mid2 > 5:
+        #     k_mid2 = k_mid2 - 1
             
-        prop_accs.append(prop_acc1)
-        #print(prop_acc1)
+        # prop_accs.append(prop_acc1)
+        # print(prop_acc1)
         ii = ii + 1
     
     print("done:", done)
@@ -187,7 +187,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
 
 def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
     tot_acc = 0
-    if random() < 0.6:
+    if random() < 0.5:
         ## Inner transposition loop, swapping        
         h_weight = countAllHist(graf, perm[0], False)[0]
         for jj in range(M_trans):
@@ -282,12 +282,12 @@ def changeLength(graf, n_inf, perm, outward, q):
             perm = perm[:-1]
             outward = outward[:-1]
     
-    orig_out = computeOutDegreeFromSeq(graf, perm)
-    if outward != orig_out:
-        print(perm)
-        print(orig_out)
-        print(outward)
-        assert False
+    # orig_out = computeOutDegreeFromSeq(graf, perm)
+    # if outward != orig_out:
+    #     print(perm)
+    #     print(orig_out)
+    #     print(outward)
+    #     assert False
     return perm, outward, acc
 
 
@@ -321,6 +321,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
         out_new = computeOutDegreeFromSeq(graf, new_perm)
         denom1 = np.prod(outward[1:k])
         denom2 = np.prod(out_new[1:])
+        
         
         if random() < min(1, denom1/denom2):
             perm[0:k] = new_perm
