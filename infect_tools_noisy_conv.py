@@ -124,7 +124,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
     prop_accs = []
     
     while not done and ii < max_iters:
-        if ii%100 == 0:
+        if ii%200 == 0:
             print('loop:', ii)
         
         burn_in = ii < M_burn
@@ -136,7 +136,8 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
         if ii > M_burn and freq_sum1 > 0 and freq_sum2 > 0:
             norm_freq1 = freq1 / freq_sum1
             norm_freq2 = freq2 / freq_sum2
-            dist = np.linalg.norm(norm_freq1 - norm_freq2)
+            dist = np.sum(np.abs(norm_freq1 - norm_freq2)) / 2
+            # dist = np.linalg.norm(norm_freq1 - norm_freq2)
             if ii > min_iters + M_burn:
                 done = (dist < conv_thr)
                 if done:
@@ -166,19 +167,19 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
                     
                 #     ii = 0
                 
-            if ii % 100 == 0:
+            if ii % 200 == 0:
                 print(dist)
-        if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
-            k_mid1 = k_mid1 - 1
-            print('loop:', ii)
-            print(dist)
-            print('k ', k_mid1)
+        # if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
+        #     k_mid1 = k_mid1 - 1
+        #     print('loop:', ii)
+        #     print(dist)
+        #     print('k ', k_mid1)
         
-        if prop_acc2 < 0.85 and prop_acc2 > 0 and k_mid2 > 5:
-            k_mid2 = k_mid2 - 1
+        # if prop_acc2 < 0.85 and prop_acc2 > 0 and k_mid2 > 5:
+        #     k_mid2 = k_mid2 - 1
             
         # prop_accs.append(prop_acc1)
-        print(prop_acc1)
+        # print(prop_acc1)
         ii = ii + 1
     
     print("done:", done)

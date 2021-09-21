@@ -39,7 +39,7 @@ foo = Graph.Lattice(dim=[10, 10], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 100
+n_inf = 50
 q = 0.95
 eps = 0.2
 
@@ -57,17 +57,18 @@ eps = 0.2
 #50000 is sufficient maxiter for 100 nodes
 #100000 is suffcient maxiter for 200 nodes
 
-n_trials = 10
+n_trials = 100
 in_set = 0
 times = []
 
 for i in range(n_trials):
     first = choices(list(range(n)), foo.degree())[0]
     true_order = simulateInfection(foo, first, n_inf, q)    
+
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=500, max_iters=100000, M_burn=100, k=4, k_mid=15)
+    freq = inferInfection(foo, q, min_iters=500, max_iters=100000, M_burn=100, k=4, k_mid=7)
     #freq = inferInfection(foo, q, min_iters=1000, max_iters=1000000, M_trans=500, M_burn=100, k=4)
     end = time.time()
     print('time:', end - start)
