@@ -168,17 +168,17 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
                 
             if ii % 100 == 0:
                 print(dist)
-        # if prop_acc1 < 0.8 and prop_acc1 > 0 and k_mid1 > 5:
-        #     k_mid1 = k_mid1 - 1
-        #     print('loop:', ii)
-        #     print(dist)
-        #     print('k ', k_mid1)
+        if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
+            k_mid1 = k_mid1 - 1
+            print('loop:', ii)
+            print(dist)
+            print('k ', k_mid1)
         
-        # if prop_acc2 < 0.8 and prop_acc2 > 0 and k_mid2 > 5:
-        #     k_mid2 = k_mid2 - 1
+        if prop_acc2 < 0.85 and prop_acc2 > 0 and k_mid2 > 5:
+            k_mid2 = k_mid2 - 1
             
         # prop_accs.append(prop_acc1)
-        # print(prop_acc1)
+        print(prop_acc1)
         ii = ii + 1
     
     print("done:", done)
@@ -186,13 +186,19 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
     
 
 def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
-    tot_acc = 0
+    start_acc = 0
+    mid_acc = 0
+    start_switch_count = 0
     if random() < 0.5:
         ## Inner transposition loop, swapping        
         h_weight = countAllHist(graf, perm[0], False)[0]
         for jj in range(M_trans):
-            perm, outward, w, acc = nodesSwap(graf, n_inf, perm, outward, h_weight, k, k_mid)
-            tot_acc = tot_acc + acc
+            perm, outward, w, acc, is_start_swap = nodesSwap(graf, n_inf, perm, outward, h_weight, k, k_mid)
+            if is_start_swap:
+                start_switch_count = start_switch_count + 1 
+                start_acc = start_acc + acc
+            else:
+                mid_acc = mid_acc + acc
             if not burn_in:
                 for idx in range(k):
                     freq = w + freq
@@ -212,17 +218,21 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
             
             graf.vs[cur_vix]["pa"] = otherNode(graf.es[my_edge], cur_vix)
         countSubtreeSizes(graf, perm[0])
-        tot_acc = tot_acc / M_trans 
         #tree_end = time.time()
         #print('remake tree:', tree_end - tree_start)
+        if start_switch_count != 0:
+            start_acc = start_acc / start_switch_count
+        mid_acc = mid_acc / (M_trans - start_switch_count) 
+        # print('start prop:', start_acc)
+        # print('mid prop:', mid_acc)
     else:
         # change_len_start = time.time()
-        perm, outward, tot_acc = changeLength(graf, n_inf, perm, outward, q)
+        perm, outward = changeLength(graf, n_inf, perm, outward, q)
         
         n_inf = len(perm)
         # change_len_end = time.time()            
         # print('change_len:', change_len_end - change_len_start)
-    return perm, n_inf, freq, outward, tot_acc
+    return perm, n_inf, freq, outward, mid_acc
 
 """
 Propose lengthening or shortening ordering 
@@ -288,7 +298,7 @@ def changeLength(graf, n_inf, perm, outward, q):
     #     print(orig_out)
     #     print(outward)
     #     assert False
-    return perm, outward, acc
+    return perm, outward
 
 
 """
@@ -374,7 +384,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
     #             print(v)
     #             print(getAncestors(graf, v))
     #             assert False
-    return perm, outward, w, acc
+    return perm, outward, w, acc, (cur_pos == 0)
 
 
 
