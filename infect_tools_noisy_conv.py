@@ -267,6 +267,8 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
         denom1 = np.prod(outward[1:k])
         denom2 = np.prod(out_new[1:])
         
+        #print(new_perm)
+        
         if random() < min(1, denom1/denom2):
             perm[0:k] = new_perm
             outward[0:k] = out_new
@@ -284,6 +286,9 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
         new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
         denom1 = np.prod(outward[cur_pos:cur_pos + k_mid])
         denom2 = np.prod(new_out_subseq)
+        
+        if (random() < 0.2):
+            print(denom1/denom2)
         
         if (random() < min(1, denom1/denom2)):
             perm = pot_perm
