@@ -201,8 +201,7 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
             else:
                 mid_acc = mid_acc + acc
             if not burn_in:
-                for idx in range(k):
-                    freq = w + freq
+                freq = w + freq
         ## re-orient edges, pick tree in a way that sequence from perm preserved
         graf.es["tree"] = False
         #tree_start = time.time()
