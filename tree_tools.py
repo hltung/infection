@@ -428,7 +428,6 @@ NOTE: modifies "pa" attribute on nodes
 """
 def switchStart(graf, perm, k, h_weight, root_dict):
     mypi = [0] * k
-    n = len(graf.vs)
     
     mypi[0] = choices(perm[0:k], h_weight)[0]
     
@@ -440,7 +439,6 @@ def switchStart(graf, perm, k, h_weight, root_dict):
     else:
         adjustSubtreeSizes(g, perm[0:k], root=mypi[0])
         root_dict[mypi[0]] = g
-
     
     remain_nodes = [i for i in perm[0:k] if i != mypi[0]]
     mypi[1:k] = np.random.permutation(remain_nodes)
@@ -503,10 +501,11 @@ def switchMiddle(graf, perm, start, k):
             mypi_inv[v] = old_pos
             
         marked[mypi[i]] = 1
-            
-    perm[start: start + k] = mypi
     
-    return perm
+    new_perm = perm.copy()
+    new_perm[start: start + k] = mypi
+    
+    return new_perm
 
 
 """
