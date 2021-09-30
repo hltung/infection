@@ -12,6 +12,7 @@ import numpy as np
 import math
 import time
 import copy
+import matplotlib.pyplot as plt
 
 """
 
@@ -74,6 +75,7 @@ def simulateInfection(graf, start, n_inf, q):
 
             true_order.append(u_next)
     #print(det_list)
+            
     return(true_order)
     
 
@@ -178,10 +180,13 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=
         # if prop_acc2 < 0.85 and prop_acc2 > 0 and k_mid2 > 5:
         #     k_mid2 = k_mid2 - 1
             
-        # prop_accs.append(prop_acc1)
-        # print(prop_acc1)
+        prop_accs.append(prop_acc1)
+        #print(prop_acc1)
         ii = ii + 1
     
+    plt.scatter(list(range(len(prop_accs))), prop_accs)
+    plt.show()
+
     print("done:", done)
     return(freq1 / np.sum(freq1))
     
@@ -201,8 +206,7 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
             else:
                 mid_acc = mid_acc + acc
             if not burn_in:
-                for idx in range(k):
-                    freq = w + freq
+                freq = w + freq
         ## re-orient edges, pick tree in a way that sequence from perm preserved
         graf.es["tree"] = False
         #tree_start = time.time()
