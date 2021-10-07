@@ -39,9 +39,13 @@ foo = Graph.Lattice(dim=[10, 10], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
+<<<<<<< Updated upstream
 n_inf = 50
+=======
+n_inf = 100
+>>>>>>> Stashed changes
 q = 0.95
-eps = 0.2
+eps = 0.1
 
 
 
@@ -57,7 +61,11 @@ eps = 0.2
 #50000 is sufficient maxiter for 100 nodes
 #100000 is suffcient maxiter for 200 nodes
 
+<<<<<<< Updated upstream
 n_trials = 100
+=======
+n_trials = 10
+>>>>>>> Stashed changes
 in_set = 0
 times = []
 
@@ -106,8 +114,9 @@ for i in range(n_trials):
     if true_order[0] in cred_set:
         in_set = in_set + 1
     print(in_set)
+    print('times:', times)
 print('proportion in credible set:', in_set / n_trials)
-print('times:', times)
+print('times for each trial:', times)
 
     
 # inf_ixs = [vix for vix in range(n) if foo.vs[vix]["infected"]]
