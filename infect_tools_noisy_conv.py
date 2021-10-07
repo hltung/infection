@@ -181,12 +181,6 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=50, M_burn=5
         # if prop_acc2 < 0.85 and prop_acc2 > 0 and k_mid2 > 5:
         #     k_mid2 = k_mid2 - 1
             
-<<<<<<< Updated upstream
-        # prop_accs.append(prop_acc1)
-        # print(prop_acc1)
-        ii = ii + 1
-    
-=======
         #prop_accs.append(prop_acc1)
         #print(prop_acc1)
         ii = ii + 1
@@ -194,7 +188,6 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=50, M_burn=5
     # plt.scatter(list(range(len(prop_accs))), prop_accs)
     # plt.show()
 
->>>>>>> Stashed changes
     print("done:", done)
     return(freq1 / np.sum(freq1))
     

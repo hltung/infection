@@ -39,11 +39,7 @@ foo = Graph.Lattice(dim=[10, 10], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-<<<<<<< Updated upstream
-n_inf = 50
-=======
 n_inf = 100
->>>>>>> Stashed changes
 q = 0.95
 eps = 0.1
 
@@ -61,11 +57,7 @@ eps = 0.1
 #50000 is sufficient maxiter for 100 nodes
 #100000 is suffcient maxiter for 200 nodes
 
-<<<<<<< Updated upstream
-n_trials = 100
-=======
 n_trials = 10
->>>>>>> Stashed changes
 in_set = 0
 times = []
 
