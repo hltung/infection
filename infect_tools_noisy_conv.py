@@ -88,7 +88,7 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=50, M_burn=50, k=4, k_mid=10, conv_thr=0.05):
+def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=50, M_burn=50, k=10, k_mid=10, conv_thr=0.05):
     
     ## generates an initial tree and initial sequence from the tree
     graf1 = graf.copy()
@@ -317,12 +317,12 @@ EFFECT:     creates "tree" binary edge attribute
 
 """    
 def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
-    M_0 = math.factorial(k) 
+    M_0 = 100
     w = np.zeros(len(graf.vs))
-    step = 3
+    step = 5
     
-    for i in range(n_inf-k_mid+1):
-        cur_pos = (i*step) % (n_inf-k_mid+1)
+    for i in range(0, n_inf-k_mid+1, step):
+        cur_pos = i
         if (cur_pos == 0):
             #start_block_start = time.time()
             #print('switch block 0 to k')
@@ -333,8 +333,9 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             new_perm, root_dict = switchStart(graf, perm, k, h_weight, {})
             for i in range(M_0):
                 p, root_dict = switchStart(graf, perm, k, h_weight, root_dict)
-                out = computeOutDegreeFromSeq(graf, p)
-                w[p[0]] = w[p[0]] + 1/np.prod(out[1:])
+                w[p[0]] = w[p[0]] + 1
+                # out = computeOutDegreeFromSeq(graf, p)
+                # w[p[0]] = w[p[0]] + 1/np.prod(out[1:])
             
             w = w / np.sum(w)
             

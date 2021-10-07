@@ -68,7 +68,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=500, max_iters=100000, M_burn=100, k=4, k_mid=7)
+    freq = inferInfection(foo, q, min_iters=500, max_iters=100000, M_burn=100, k=10, k_mid=15)
     #freq = inferInfection(foo, q, min_iters=1000, max_iters=1000000, M_trans=500, M_burn=100, k=4)
     end = time.time()
     print('time:', end - start)
