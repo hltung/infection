@@ -16,11 +16,25 @@ import matplotlib.pyplot as plt
 from random import *
 import time 
 
-foo = Graph.Lattice(dim=[10, 10], circular=False)
+# foo = Graph.Lattice(dim=[10, 10], circular=False)
 
 
-#foo = Graph.Erdos_Renyi(n=50, m=250)
+# foo = Graph.Erdos_Renyi(n=50, m=250)
 
+filename = "data/inf-euroroad.txt"
+# with open(filename) as f:
+#     file_str = f.read()
+
+# file_str = file_str.replace(',', ' ')
+
+# with open(filename, "w") as f:
+#     f.write(file_str)
+
+foo = Graph.Read_Edgelist(filename, directed=False)
+foo.simplify()
+foo = foo.clusters().giant()
+# print(foo.es[1404].target)
+# print(foo.es[1404].source)
 
 # foo = igraph.read("data/global-net.dat")
 # foo.delete_vertices(0)
@@ -39,11 +53,12 @@ foo = Graph.Lattice(dim=[10, 10], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 100
+n_inf = 20
 q = 0.95
 eps = 0.1
 
-
+print(n)
+print(m)
 
 ## wuhan 3426
 ## new york 2229
@@ -57,18 +72,20 @@ eps = 0.1
 #50000 is sufficient maxiter for 100 nodes
 #100000 is suffcient maxiter for 200 nodes
 
-n_trials = 10
+n_trials = 30
 in_set = 0
 times = []
 
+
 for i in range(n_trials):
+    #first = 1148
     first = choices(list(range(n)), foo.degree())[0]
     true_order = simulateInfection(foo, first, n_inf, q)    
 
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=500, max_iters=100000, M_burn=100, k=10, k_mid=15)
+    freq = inferInfection(foo, q, min_iters=500, max_iters=5000, M_burn=50, k=10, k_mid=15, conv_thr=0.025)
     #freq = inferInfection(foo, q, min_iters=1000, max_iters=1000000, M_trans=500, M_burn=100, k=4)
     end = time.time()
     print('time:', end - start)

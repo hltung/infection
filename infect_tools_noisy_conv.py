@@ -29,7 +29,6 @@ EFFECT: adds "infected" binary node attribute
 """
 
 def simulateInfection(graf, start, n_inf, q):
-    
     ## iterate and sample
     ## mark infected nodes
     graf.vs["detected"] = False
@@ -51,7 +50,6 @@ def simulateInfection(graf, start, n_inf, q):
     true_order = [start]
     
     while (ii < n_inf-1):
-        
         rand_ix = choices(edge_ixs)[0]
         edge_ixs.remove(rand_ix)
         
@@ -140,7 +138,6 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=50, M_burn=5
             norm_freq1 = freq1 / freq_sum1
             norm_freq2 = freq2 / freq_sum2
             dist = np.sum(np.abs(norm_freq1 - norm_freq2)) / 2
-            # dist = np.linalg.norm(np.sqrt(norm_freq1) - np.sqrt(norm_freq2))/np.sqrt(2)
             if ii > min_iters + M_burn:
                 done = (dist < conv_thr)
                 if done:
@@ -319,11 +316,11 @@ EFFECT:     creates "tree" binary edge attribute
 def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
     M_0 = 100
     w = np.zeros(len(graf.vs))
-    step = 5
+    step = 3
     
-    for i in range(0, n_inf-k_mid+1, step):
-        cur_pos = i
-        if (cur_pos == 0):
+    for i in range(0, n_inf-k_mid+1):
+        cur_pos = n_inf-k_mid - (i*step % (n_inf-k_mid+1))
+        if cur_pos == 0:
             #start_block_start = time.time()
             #print('switch block 0 to k')
             ## deal with root separately
@@ -348,9 +345,6 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
                 perm[0:k] = new_perm
                 outward[0:k] = out_new
                 adjustSubtreeSizes(graf, perm[0:k], perm[0])
-            #start_block_end = time.time()
-            #print('start blck:', start_block_end - start_block_start)
-            
         else:
             #print('switch block start to start + k')
     
@@ -377,6 +371,10 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
                 outward[cur_pos: cur_pos + k_mid] = new_out_subseq
             #mid_switch_end = time.time()
             #print('mid block', mid_switch_end - mid_switch_start)
+    
+    
+    #start_block_end = time.time()
+    #print('start blck:', start_block_end - start_block_start)
     # print(perm)
     # # print('\n')
     # # print(n_inf)
