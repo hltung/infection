@@ -53,7 +53,7 @@ foo = foo.clusters().giant()
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 20
+n_inf = 30
 q = 0.95
 eps = 0.1
 
@@ -72,20 +72,19 @@ print(m)
 #50000 is sufficient maxiter for 100 nodes
 #100000 is suffcient maxiter for 200 nodes
 
-n_trials = 30
+n_trials = 50
 in_set = 0
 times = []
 
 
 for i in range(n_trials):
-    #first = 1148
     first = choices(list(range(n)), foo.degree())[0]
     true_order = simulateInfection(foo, first, n_inf, q)    
 
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=500, max_iters=5000, M_burn=50, k=10, k_mid=15, conv_thr=0.025)
+    freq = inferInfection(foo, q, min_iters=5000, max_iters=50000, M_burn=25, k=10, k_mid=15, conv_thr=0.02)
     #freq = inferInfection(foo, q, min_iters=1000, max_iters=1000000, M_trans=500, M_burn=100, k=4)
     end = time.time()
     print('time:', end - start)
