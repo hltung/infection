@@ -90,7 +90,7 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=400, M_burn=50, k=4, k_mid=10, conv_thr=0.05):
+def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.05):
     
     ## generates an initial tree and initial sequence from the tree
     graf1 = graf.copy()
@@ -314,65 +314,67 @@ EFFECT:     creates "tree" binary edge attribute
 """    
 def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
     acc = 0
-    cur_pos = choices(list(range(n_inf-k_mid+1)))[0]
-    M_0 = math.factorial(k) 
+    M_0 = 50
     w = np.zeros(len(graf.vs))
-   
-    if (cur_pos == 0):
-        #start_block_start = time.time()
-        #print('switch block 0 to k')
-        ## deal with root separately
-        h_weight = [0] * k
-        for i in range(k):
-            h_weight[i] = all_weight[perm[i]]
-        new_perm, root_dict = switchStart(graf, perm, k, h_weight, {})
-        for i in range(M_0):
-            p, root_dict = switchStart(graf, perm, k, h_weight, root_dict)
-            out = computeOutDegreeFromSeq(graf, p)
-            w[p[0]] = w[p[0]] + 1/np.prod(out[1:])
-        
-        w = w / np.sum(w)
-        
-        out_new = computeOutDegreeFromSeq(graf, new_perm)
-        denom1 = np.prod(outward[1:k])
-        denom2 = np.prod(out_new[1:])
-        
-        
-        if random() < min(1, denom1/denom2):
-            perm[0:k] = new_perm
-            outward[0:k] = out_new
-            acc = 1
-        adjustSubtreeSizes(graf, perm[0:k], perm[0])
-        #start_block_end = time.time()
-        #print('start blck:', start_block_end - start_block_start)
-        
-    else:
-        #print('switch block start to start + k')
-
-        ## regular swapping
-        #mid_switch_start = time.time()
-        
-        pot_perm = switchMiddle(graf, perm, cur_pos, k_mid)
-        new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
-        
-        thr = np.prod(np.divide(outward[cur_pos:cur_pos + k_mid], new_out_subseq))
-        
-        # if thr < 0:
-        #     print(outward)
-        #     print(outward[cur_pos: cur_pos + k_mid])
-        #     print(perm)
-        #     print(new_out_subseq)
-        #     print(pot_perm)
-        #     assert False
-        # if (random() < 0.1):
-        #     print(thr)
-        
-        if (random() < min(1, thr)):
-            acc = 1
-            perm = pot_perm
-            outward[cur_pos: cur_pos + k_mid] = new_out_subseq
-        #mid_switch_end = time.time()
-        #print('mid block', mid_switch_end - mid_switch_start)
+    step = 4
+    
+    for i in range(0, n_inf-k_mid+1):
+        cur_pos = n_inf-k_mid - (i*step % (n_inf-k_mid+1))
+        if (cur_pos == 0):
+            #start_block_start = time.time()
+            #print('switch block 0 to k')
+            ## deal with root separately
+            h_weight = [0] * k
+            for i in range(k):
+                h_weight[i] = all_weight[perm[i]]
+            new_perm, root_dict = switchStart(graf, perm, k, h_weight, {})
+            for i in range(M_0):
+                p, root_dict = switchStart(graf, perm, k, h_weight, root_dict)
+                out = computeOutDegreeFromSeq(graf, p)
+                w[p[0]] = w[p[0]] + 1/np.prod(out[1:])
+            
+            w = w / np.sum(w)
+            
+            out_new = computeOutDegreeFromSeq(graf, new_perm)
+            denom1 = np.prod(outward[1:k])
+            denom2 = np.prod(out_new[1:])
+            
+            
+            if random() < min(1, denom1/denom2):
+                perm[0:k] = new_perm
+                outward[0:k] = out_new
+                acc = 1
+            adjustSubtreeSizes(graf, perm[0:k], perm[0])
+            #start_block_end = time.time()
+            #print('start blck:', start_block_end - start_block_start)
+            
+        else:
+            #print('switch block start to start + k')
+    
+            ## regular swapping
+            #mid_switch_start = time.time()
+            
+            pot_perm = switchMiddle(graf, perm, cur_pos, k_mid)
+            new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
+            
+            thr = np.prod(np.divide(outward[cur_pos:cur_pos + k_mid], new_out_subseq))
+            
+            # if thr < 0:
+            #     print(outward)
+            #     print(outward[cur_pos: cur_pos + k_mid])
+            #     print(perm)
+            #     print(new_out_subseq)
+            #     print(pot_perm)
+            #     assert False
+            # if (random() < 0.1):
+            #     print(thr)
+            
+            if (random() < min(1, thr)):
+                acc = 1
+                perm = pot_perm
+                outward[cur_pos: cur_pos + k_mid] = new_out_subseq
+            #mid_switch_end = time.time()
+            #print('mid block', mid_switch_end - mid_switch_start)
     # print(perm)
     # # print('\n')
     # # print(n_inf)

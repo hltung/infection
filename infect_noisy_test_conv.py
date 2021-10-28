@@ -57,7 +57,7 @@ eps = 0.2
 #50000 is sufficient maxiter for 100 nodes
 #100000 is suffcient maxiter for 200 nodes
 
-n_trials = 1
+n_trials = 10
 in_set = 0
 times = []
 
@@ -68,7 +68,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=500, max_iters=100000, M_burn=100, k=4, k_mid=15)
+    freq = inferInfection(foo, q, min_iters=1000, max_iters=10000, M_burn=100, k=10, k_mid=15)
     end = time.time()
     print('time:', end - start)
     times.append(end - start)
@@ -105,6 +105,7 @@ for i in range(n_trials):
     if true_order[0] in cred_set:
         in_set = in_set + 1
     print(in_set)
+    print('current times',times)
 print('proportion in credible set:', in_set / n_trials)
 print('times:', times)
 
