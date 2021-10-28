@@ -330,8 +330,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             new_perm, root_dict = switchStart(graf, perm, k, h_weight, {})
             for i in range(M_0):
                 p, root_dict = switchStart(graf, perm, k, h_weight, root_dict)
-                out = computeOutDegreeFromSeq(graf, p)
-                w[p[0]] = w[p[0]] + 1/np.prod(out[1:])
+                w[p[0]] = w[p[0]] + 1
             
             w = w / np.sum(w)
             

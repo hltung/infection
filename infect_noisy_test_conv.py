@@ -18,7 +18,6 @@ import time
 
 foo = Graph.Lattice(dim=[10, 10], circular=False)
 
-
 # foo = Graph.Erdos_Renyi(n=200, m=1000)
 
 
@@ -68,7 +67,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=1000, max_iters=10000, M_burn=100, k=10, k_mid=15)
+    freq = inferInfection(foo, q, min_iters=1000, max_iters=10000, M_burn=100, k=10, k_mid=10)
     end = time.time()
     print('time:', end - start)
     times.append(end - start)
