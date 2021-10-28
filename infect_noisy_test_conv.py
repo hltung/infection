@@ -38,7 +38,7 @@ foo = Graph.Lattice(dim=[10, 10], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 20
+n_inf = 50
 q = 0.95
 eps = 0.2
 

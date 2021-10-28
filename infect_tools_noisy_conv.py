@@ -90,7 +90,7 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.05):
+def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.02):
     
     ## generates an initial tree and initial sequence from the tree
     graf1 = graf.copy()
@@ -126,7 +126,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
     prop_accs = []
     
     while not done and ii < max_iters:
-        if ii%200 == 0:
+        if ii%500 == 0:
             print('loop:', ii)
         
         burn_in = ii < M_burn
@@ -169,7 +169,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
                     
                 #     ii = 0
                 
-            if ii % 200 == 0:
+            if ii % 500 == 0:
                 print(dist)
         # if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
         #     k_mid1 = k_mid1 - 1
@@ -192,19 +192,13 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
     
 
 def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
-    start_acc = 0
-    mid_acc = 0
-    start_switch_count = 0
+    tot_acc = 0
     if random() < 0.5:
         ## Inner transposition loop, swapping        
         h_weight = countAllHist(graf, perm[0], False)[0]
         for jj in range(M_trans):
-            perm, outward, w, acc, is_start_swap = nodesSwap(graf, n_inf, perm, outward, h_weight, k, k_mid)
-            if is_start_swap:
-                start_switch_count = start_switch_count + 1 
-                start_acc = start_acc + acc
-            else:
-                mid_acc = mid_acc + acc
+            perm, outward, w, acc = nodesSwap(graf, n_inf, perm, outward, h_weight, k, k_mid)
+            tot_acc = acc + tot_acc
             if not burn_in:
                 freq = w + freq
         ## re-orient edges, pick tree in a way that sequence from perm preserved
@@ -225,11 +219,7 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
         countSubtreeSizes(graf, perm[0])
         #tree_end = time.time()
         #print('remake tree:', tree_end - tree_start)
-        if start_switch_count != 0:
-            start_acc = start_acc / start_switch_count
-        mid_acc = mid_acc / (M_trans - start_switch_count) 
-        # print('start prop:', start_acc)
-        # print('mid prop:', mid_acc)
+        tot_acc = tot_acc / (M_trans * (n_inf - k_mid)) 
     else:
         # change_len_start = time.time()
         perm, outward = changeLength(graf, n_inf, perm, outward, q)
@@ -237,7 +227,7 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
         n_inf = len(perm)
         # change_len_end = time.time()            
         # print('change_len:', change_len_end - change_len_start)
-    return perm, n_inf, freq, outward, mid_acc
+    return perm, n_inf, freq, outward, tot_acc
 
 """
 Propose lengthening or shortening ordering 
@@ -342,7 +332,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             if random() < min(1, denom1/denom2):
                 perm[0:k] = new_perm
                 outward[0:k] = out_new
-                acc = 1
+                acc = acc + 1
             adjustSubtreeSizes(graf, perm[0:k], perm[0])
             #start_block_end = time.time()
             #print('start blck:', start_block_end - start_block_start)
@@ -369,7 +359,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             #     print(thr)
             
             if (random() < min(1, thr)):
-                acc = 1
+                acc = acc + 1
                 perm = pot_perm
                 outward[cur_pos: cur_pos + k_mid] = new_out_subseq
             #mid_switch_end = time.time()
@@ -390,7 +380,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
     #             print(v)
     #             print(getAncestors(graf, v))
     #             assert False
-    return perm, outward, w, acc, (cur_pos == 0)
+    return perm, outward, w, acc
 
 
 
