@@ -90,7 +90,7 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.02):
+def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.01):
     
     ## generates an initial tree and initial sequence from the tree
     graf1 = graf.copy()
@@ -169,8 +169,8 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
                     
                 #     ii = 0
                 
-            if ii % 500 == 0:
-                print(dist)
+        if ii % 500 == 0:
+            print(dist)
         # if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
         #     k_mid1 = k_mid1 - 1
         #     print('loop:', ii)
@@ -306,7 +306,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
     acc = 0
     M_0 = 50
     w = np.zeros(len(graf.vs))
-    step = 4
+    step = 6
     
     for i in range(0, n_inf-k_mid+1):
         cur_pos = n_inf-k_mid - (i*step % (n_inf-k_mid+1))
@@ -325,11 +325,10 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             w = w / np.sum(w)
             
             out_new = computeOutDegreeFromSeq(graf, new_perm)
-            denom1 = np.prod(outward[1:k])
-            denom2 = np.prod(out_new[1:])
             
+            thr = np.prod(np.divide(outward[1:k], out_new[1:k]))
             
-            if random() < min(1, denom1/denom2):
+            if random() < min(1, thr):
                 perm[0:k] = new_perm
                 outward[0:k] = out_new
                 acc = acc + 1
