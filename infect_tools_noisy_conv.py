@@ -314,12 +314,18 @@ EFFECT:     creates "tree" binary edge attribute
 
 """    
 def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
-    M_0 = 100
+    M_0 = 20
     w = np.zeros(len(graf.vs))
-    step = 3
+    step = 25 
     
-    for i in range(0, n_inf-k_mid+1):
-        cur_pos = n_inf-k_mid - (i*step % (n_inf-k_mid+1))
+    if (n_inf-k_mid % step == 0):
+        marks = range(0, n_inf-k_mid+1, step)
+    else:
+        marks = list(range(0, n_inf-k_mid+1, step)) + [n_inf-k_mid]
+    
+    for i in marks:
+        cur_pos = i
+        #cur_pos = n_inf-k_mid - (i*step % (n_inf-k_mid+1))
         if cur_pos == 0:
             #start_block_start = time.time()
             #print('switch block 0 to k')
@@ -337,9 +343,10 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             w = w / np.sum(w)
             
             out_new = computeOutDegreeFromSeq(graf, new_perm)
-            denom1 = np.prod(outward[1:k])
-            denom2 = np.prod(out_new[1:])
+            denom1 = np.exp(np.sum(np.log(outward[1:k])))
+            denom2 = np.exp(np.sum(np.log(out_new[1:])))
             
+
             
             if random() < min(1, denom1/denom2):
                 perm[0:k] = new_perm
