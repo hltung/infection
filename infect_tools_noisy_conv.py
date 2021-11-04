@@ -86,7 +86,7 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=50, M_burn=50, k=10, k_mid=10, conv_thr=0.05):
+def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=10, k_mid=10, conv_thr=0.05):
     
     ## generates an initial tree and initial sequence from the tree
     graf1 = graf.copy()
@@ -122,7 +122,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=50, M_burn=5
     prop_accs = []
     
     while not done and ii < max_iters:
-        if ii%200 == 0:
+        if ii%1000 == 0:
             print('loop:', ii)
         
         burn_in = ii < M_burn
@@ -167,7 +167,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=50, M_burn=5
                     
                 #     ii = 0
                 
-            if ii % 200 == 0:
+            if ii % 1000 == 0:
                 print(dist)
         # if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
         #     k_mid1 = k_mid1 - 1
@@ -314,7 +314,9 @@ EFFECT:     creates "tree" binary edge attribute
 
 """    
 def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
-    M_0 = 20
+
+    M_0 = 50
+
     w = np.zeros(len(graf.vs))
     step = 25 
     
