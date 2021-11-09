@@ -16,29 +16,29 @@ import matplotlib.pyplot as plt
 from random import *
 import time 
 
-#foo = Graph.Lattice(dim=[10, 10], circular=False)
+foo = Graph.Lattice(dim=[10, 10], circular=False)
 
 # foo = Graph.Erdos_Renyi(n=200, m=1000)
 
 
-foo = igraph.read("data/global-net.dat")
-foo.delete_vertices(0)
-foo.to_undirected()
-foo.simplify()
+# foo = igraph.read("data/global-net.dat")
+# foo.delete_vertices(0)
+# foo.to_undirected()
+# foo.simplify()
+# # foo = foo.clusters().giant()
+
+# filename = "data/inf-euroroad.txt"
+# # with open(filename) as f:
+# #     file_str = f.read()
+
+# # file_str = file_str.replace(',', ' ')
+
+# # with open(filename, "w") as f:
+# #     f.write(file_str)
+
+# foo = Graph.Read_Edgelist(filename, directed=False)
+# foo.simplify()
 # foo = foo.clusters().giant()
-
-filename = "data/inf-euroroad.txt"
-# with open(filename) as f:
-#     file_str = f.read()
-
-# file_str = file_str.replace(',', ' ')
-
-# with open(filename, "w") as f:
-#     f.write(file_str)
-
-foo = Graph.Read_Edgelist(filename, directed=False)
-foo.simplify()
-foo = foo.clusters().giant()
 
 
 # degs = np.array(foo.degree())
@@ -80,7 +80,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=10000, max_iters=30000, M_burn=50, k=10, k_mid=10)
+    freq = inferInfection(foo, q, min_iters=1000, max_iters=10000, M_burn=50, k=10, k_mid=10)
     end = time.time()
     print('time:', end - start)
     times.append(end - start)

@@ -90,7 +90,7 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.01):
+def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.025):
     
     ## generates an initial tree and initial sequence from the tree
     graf1 = graf.copy()
@@ -169,8 +169,8 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
                     
                 #     ii = 0
                 
-        if ii % 500 == 0:
-            print(dist)
+            if ii % 500 == 0:
+                print(dist)
         # if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
         #     k_mid1 = k_mid1 - 1
         #     print('loop:', ii)
@@ -308,12 +308,17 @@ EFFECT:     creates "tree" binary edge attribute
 """    
 def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
     acc = 0
-    M_0 = 50
+    M_0 = 25
     w = np.zeros(len(graf.vs))
     step = 6
     
+    starts = []
     for i in range(0, n_inf-k_mid+1):
-        cur_pos = n_inf-k_mid - (i*step % (n_inf-k_mid+1))
+        starts.append(n_inf-k_mid - (i*step % (n_inf-k_mid+1)))
+    starts.append(0)
+    
+    for i in starts:
+        cur_pos = i
         if (cur_pos == 0):
             #start_block_start = time.time()
             #print('switch block 0 to k')
@@ -326,12 +331,15 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             for i in range(M_0):
                 p, root_dict = switchStart(graf, perm, k, h_weight, root_dict)
                 w[p[0]] = w[p[0]] + 1
-            
+                
             w = w / np.sum(w)
             
             out_new = computeOutDegreeFromSeq(graf, new_perm)
             
-            thr = np.prod(np.divide(outward[1:k], out_new[1:k]))
+            #thr = np.prod(np.divide(outward[1:k], out_new[1:k]))
+            denom1 = np.sum(np.log(outward[1:k]))
+            denom2 = np.sum(np.log(out_new[1:k]))
+            thr = np.exp(denom1 - denom2)
             
             if random() < min(1, thr):
                 perm[0:k] = new_perm
@@ -351,7 +359,10 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             pot_perm = switchMiddle(graf, perm, cur_pos, k_mid)
             new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
             
-            thr = np.prod(np.divide(outward[cur_pos:cur_pos + k_mid], new_out_subseq))
+            #thr = np.prod(np.divide(outward[cur_pos:cur_pos + k_mid], new_out_subseq))
+            denom1 = np.sum(np.log(outward[cur_pos:cur_pos + k_mid]))
+            denom2 = np.sum(np.log(new_out_subseq))
+            thr = np.exp(denom1 - denom2)
             
             # if thr < 0:
             #     print(outward)
