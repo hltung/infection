@@ -193,6 +193,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
 
 def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
     tot_acc = 0
+    
     if random() < 0.5:
         ## Inner transposition loop, swapping        
         h_weight = countAllHist(graf, perm[0], False)[0]
@@ -201,9 +202,11 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
             tot_acc = acc + tot_acc
             if not burn_in:
                 freq = w + freq
+                
         ## re-orient edges, pick tree in a way that sequence from perm preserved
         graf.es["tree"] = False
         #tree_start = time.time()
+        
         for kk in range(1,n_inf):
             cur_vix = perm[kk]
             
@@ -216,6 +219,7 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
             graf.es[my_edge]["tree"] = True
             
             graf.vs[cur_vix]["pa"] = otherNode(graf.es[my_edge], cur_vix)
+            
         countSubtreeSizes(graf, perm[0])
         #tree_end = time.time()
         #print('remake tree:', tree_end - tree_start)
@@ -314,6 +318,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             #start_block_start = time.time()
             #print('switch block 0 to k')
             ## deal with root separately
+            
             h_weight = [0] * k
             for i in range(k):
                 h_weight[i] = all_weight[perm[i]]
@@ -333,6 +338,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
                 outward[0:k] = out_new
                 acc = acc + 1
             adjustSubtreeSizes(graf, perm[0:k], perm[0])
+            
             #start_block_end = time.time()
             #print('start blck:', start_block_end - start_block_start)
             
