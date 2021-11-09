@@ -327,7 +327,9 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             h_weight = [0] * k
             for i in range(k):
                 h_weight[i] = all_weight[perm[i]]
+                
             new_perm, root_dict = switchStart(graf, perm, k, h_weight, {})
+            
             for i in range(M_0):
                 p, root_dict = switchStart(graf, perm, k, h_weight, root_dict)
                 w[p[0]] = w[p[0]] + 1
