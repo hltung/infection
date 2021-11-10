@@ -82,7 +82,7 @@ def simulateInfection(graf, start, n_inf, q):
 """ 
 INPUT:  graf, igraph object
         M_outer, number of outer Gibbs iterations
-        M_trans, number of transpositions per outer iteration
+        M_pass, number of passes per outer iteration
 
 OUTPUT:     dict mapping node_index -> posterior root probability
 
@@ -90,7 +90,10 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.05):
+def inferInfection(graf, q, min_iters=500, max_iters=10000, M_pass=1, M_burn=50, M_rootsamp=10,
+                   k_root=5, k=10, conv_thr=0.05, step=1):
+    
+    
     
     ## generates an initial tree and initial sequence from the tree
     graf1 = graf.copy()
@@ -112,8 +115,6 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
     n_inf2 = len(perm2)
     #print(n_inf)
     
-    k_mid1 = k_mid
-    k_mid2 = k_mid
     
     n = len(graf1.vs)
     freq1 = np.zeros(n)
@@ -130,11 +131,20 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
             print('loop:', ii)
         
         burn_in = ii < M_burn
-        perm1, n_inf1, freq1, outward1, prop_acc1 = updatePerm(graf1, perm1, q, n_inf1, freq1, outward1, burn_in, k, k_mid1, M_trans)
-        perm2, n_inf2, freq2, outward2, prop_acc2 = updatePerm(graf2, perm2, q, n_inf2, freq2, outward2, burn_in, k, k_mid2, M_trans)
+        
+        mcmc_params = {"burn_in" : burn_in,
+                   "k_root" : k_root,   
+                   "k" : k,
+                   "M_pass" : M_pass,
+                   "step" : step,
+                   "M_rootsamp" : M_rootsamp}
+        
+        perm1, n_inf1, freq1, outward1, prop_acc1 = updatePerm(graf1, perm1, q, n_inf1, freq1, outward1, **mcmc_params)
+        perm2, n_inf2, freq2, outward2, prop_acc2 = updatePerm(graf2, perm2, q, n_inf2, freq2, outward2, **mcmc_params)
         
         freq_sum1 = np.sum(freq1)
         freq_sum2 = np.sum(freq2)
+        
         if ii > M_burn and freq_sum1 > 0 and freq_sum2 > 0:
             norm_freq1 = freq1 / freq_sum1
             norm_freq2 = freq2 / freq_sum2
@@ -171,6 +181,7 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
                 
             if ii % 500 == 0:
                 print(dist)
+                print(np.mean(prop_accs))
         # if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
         #     k_mid1 = k_mid1 - 1
         #     print('loop:', ii)
@@ -191,14 +202,20 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=5
     return(freq1 / np.sum(freq1))
     
 
-def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
+def updatePerm(graf, perm, q, n_inf, freq, outward, **mcmc_params):
     tot_acc = 0
+    
+    burn_in = mcmc_params["burn_in"]
+    M_pass = mcmc_params["M_pass"]
+    k = mcmc_params["k"]
+    step = mcmc_params["step"]
     
     if random() < 0.5:
         ## Inner transposition loop, swapping        
         h_weight = countAllHist(graf, perm[0], False)[0]
-        for jj in range(M_trans):
-            perm, outward, w, acc = nodesSwap(graf, n_inf, perm, outward, h_weight, k, k_mid)
+        
+        for jj in range(M_pass):
+            perm, outward, w, acc = nodesSwap(graf, n_inf, perm, outward, h_weight, **mcmc_params)
             tot_acc = acc + tot_acc
             if not burn_in:
                 freq = w + freq
@@ -223,7 +240,7 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, burn_in, k, k_mid, M_trans):
         countSubtreeSizes(graf, perm[0])
         #tree_end = time.time()
         #print('remake tree:', tree_end - tree_start)
-        tot_acc = tot_acc / (M_trans * (n_inf - k_mid)) 
+        tot_acc = tot_acc / (M_pass * (1 + np.ceil( (n_inf - k)/step )) )
     else:
         # change_len_start = time.time()
         perm, outward = changeLength(graf, n_inf, perm, outward, q)
@@ -306,16 +323,30 @@ Potentially swap nodes in ordering
 EFFECT:     creates "tree" binary edge attribute
 
 """    
-def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
+def nodesSwap(graf, n_inf, perm, outward, all_weight, **mcmc_params):
+    
+    M_rootsamp = mcmc_params["M_rootsamp"]
+    step = mcmc_params["step"]
+    k = mcmc_params["k"]
+    k_root = mcmc_params["k_root"]
+    
     acc = 0
-    M_0 = 25
+
     w = np.zeros(len(graf.vs))
-    step = 6
     
     starts = []
-    for i in range(0, n_inf-k_mid+1):
-        starts.append(n_inf-k_mid - (i*step % (n_inf-k_mid+1)))
-    starts.append(0)
+    for i in range(0, n_inf):
+        cur_start = step * i 
+        if (cur_start >= n_inf - k):
+            starts.append(n_inf - k)
+            break
+        else:
+            starts.append(cur_start)
+            
+    #starts = []
+    #for i in range(0, n_inf-k_mid+1):
+    #    starts.append(n_inf-k_mid - (i*step % (n_inf-k_mid+1)))
+    #starts.append(0)
     
     for i in starts:
         cur_pos = i
@@ -328,12 +359,27 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             for i in range(k):
                 h_weight[i] = all_weight[perm[i]]
                 
+            
             new_perm, root_dict = switchStart(graf, perm, k, h_weight, {})
             
-            for i in range(M_0):
-                p, root_dict = switchStart(graf, perm, k, h_weight, root_dict)
-                w[p[0]] = w[p[0]] + 1
+            
+            h_weight = [0] * k_root
+            for i in range(k_root):
+                h_weight[i] = all_weight[perm[i]]
+            
+            
+            for i in range(M_rootsamp):
+                p, root_dict = switchStart(graf, perm, k_root, h_weight, root_dict)
+                cur_out = computeOutDegreeFromSeq(graf, p)
                 
+                denom1 = np.sum(np.log(outward[1:k]))
+                denom2 = np.sum(np.log(cur_out[1:k]))
+                thr = denom1 - denom2
+            
+                if random() < np.exp(min(0, thr)):
+                    w[p[0]] = w[p[0]] + 1
+                
+            
             w = w / np.sum(w)
             
             out_new = computeOutDegreeFromSeq(graf, new_perm)
@@ -358,11 +404,11 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             ## regular swapping
             #mid_switch_start = time.time()
             
-            pot_perm = switchMiddle(graf, perm, cur_pos, k_mid)
-            new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
+            pot_perm = switchMiddle(graf, perm, cur_pos, k)
+            new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k)
             
             #thr = np.prod(np.divide(outward[cur_pos:cur_pos + k_mid], new_out_subseq))
-            denom1 = np.sum(np.log(outward[cur_pos:cur_pos + k_mid - 1]))
+            denom1 = np.sum(np.log(outward[cur_pos:cur_pos + k - 1]))
             denom2 = np.sum(np.log(new_out_subseq[:-1]))
             thr = denom1 - denom2
             
@@ -381,7 +427,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             if random() < np.exp(min(0, thr)):
                 acc = acc + 1
                 perm = pot_perm
-                outward[cur_pos: cur_pos + k_mid] = new_out_subseq
+                outward[cur_pos: cur_pos + k] = new_out_subseq
             #mid_switch_end = time.time()
             #print('mid block', mid_switch_end - mid_switch_start)
     # print(perm)
@@ -608,7 +654,27 @@ def computeOutDegreeSubseq(graf, perm, old_out, start, k):
     return(outward)        
     
 def computeOutDegreeFromSeq(graf, perm, end=-1):
+    """
     
+
+    Parameters
+    ----------
+    graf : igraph object
+        Input graph.
+    perm : array
+        A permutation of a subset of nodes, 
+        represented as integers.
+    end : TYPE, optional
+        DESCRIPTION. The default is -1.
+
+    Returns
+    -------
+    outward : an array of integers
+        outward[i] is the number of edges from 
+        nodes perm[1:i] to other nodes in the graph
+    
+
+    """
     if (end == -1):
         end = len(perm)
     
