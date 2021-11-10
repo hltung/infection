@@ -51,8 +51,8 @@ foo = Graph.Lattice(dim=[10, 10], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 30
-q = 0.95
+n_inf = 100
+q = 1
 eps = 0.2
 
 
@@ -80,7 +80,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=1000, max_iters=10000, M_burn=50, k=10, k_mid=10)
+    freq = inferInfection(foo, q, min_iters=1000, max_iters=50000, M_burn=50, k=10, k_mid=10)
     end = time.time()
     print('time:', end - start)
     times.append(end - start)

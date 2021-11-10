@@ -90,7 +90,7 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.025):
+def inferInfection(graf, q, min_iters=500, max_iters=10000, M_trans=20, M_burn=50, k=4, k_mid=10, conv_thr=0.05):
     
     ## generates an initial tree and initial sequence from the tree
     graf1 = graf.copy()
@@ -334,9 +334,9 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             #thr = np.prod(np.divide(outward[1:k], out_new[1:k]))
             denom1 = np.sum(np.log(outward[1:k]))
             denom2 = np.sum(np.log(out_new[1:k]))
-            thr = np.exp(denom1 - denom2)
+            thr = denom1 - denom2
             
-            if random() < min(1, thr):
+            if random() < np.exp(min(0, thr)):
                 perm[0:k] = new_perm
                 outward[0:k] = out_new
                 acc = acc + 1
@@ -354,9 +354,11 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k_mid)
             
             #thr = np.prod(np.divide(outward[cur_pos:cur_pos + k_mid], new_out_subseq))
-            denom1 = np.sum(np.log(outward[cur_pos:cur_pos + k_mid]))
-            denom2 = np.sum(np.log(new_out_subseq))
-            thr = np.exp(denom1 - denom2)
+            denom1 = np.sum(np.log(outward[cur_pos:cur_pos + k_mid - 1]))
+            denom2 = np.sum(np.log(new_out_subseq[:-1]))
+            thr = denom1 - denom2
+            
+            
             
             # if thr < 0:
             #     print(outward)
@@ -368,7 +370,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, k, k_mid):
             # if (random() < 0.1):
             #     print(thr)
             
-            if (random() < min(1, thr)):
+            if random() < np.exp(min(0, thr)):
                 acc = acc + 1
                 perm = pot_perm
                 outward[cur_pos: cur_pos + k_mid] = new_out_subseq
