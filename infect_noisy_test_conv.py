@@ -69,6 +69,17 @@ eps = 0.2
 #50000 is sufficient maxiter for 100 nodes
 #100000 is suffcient maxiter for 200 nodes
 
+mcmc_params = {"M_burn" : 200,
+               "k_root" : 25,
+               "k" : 30,
+               "M_pass" : 1,
+               "step_ratio" : 0.4,
+               "M_rootsamp" : 25,
+               "acc_block" : 30,
+               "acc_cut" : 0.1,
+               "k_decr" : 5}
+
+
 n_trials = 10
 in_set = 0
 times = []
@@ -80,7 +91,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=1000, max_iters=50000, M_burn=50, k=10, k_mid=10)
+    freq = inferInfection(foo, q, min_iters=1000, max_iters=150000, conv_thr=0.05, **mcmc_params)
     end = time.time()
     print('time:', end - start)
     times.append(end - start)

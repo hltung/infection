@@ -218,6 +218,7 @@ def inferInfection(graf, q, **mcmc_params):
     #print(prop_accs)
 
     print("done:", done)
+    
     return(freq1 / np.sum(freq1))
     
 
@@ -262,7 +263,7 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, **mcmc_params):
         tot_acc = tot_acc / (M_pass * (1 + np.ceil( (n_inf - k)/step )) )
     else:
         # change_len_start = time.time()
-        perm, outward, tot_acc = changeLength(graf, n_inf, perm, outward, q)
+        perm, outward, acc = changeLength(graf, n_inf, perm, outward, q)
         
         n_inf = len(perm)
         # change_len_end = time.time()            
