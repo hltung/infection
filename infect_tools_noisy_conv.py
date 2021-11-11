@@ -134,7 +134,7 @@ def inferInfection(graf, q, **mcmc_params):
     
     acc_block = mcmc_params["acc_block"]
     acc_cut = mcmc_params["acc_cut"]
-    step_decr = mcmc_params["step_decr"]
+    k_decr = mcmc_params["k_decr"]
     
     while not done and ii < max_iters:
         if ii%500 == 0:
@@ -149,7 +149,7 @@ def inferInfection(graf, q, **mcmc_params):
             
             if (np.mean(cur_acc) < acc_cut):
                 
-                k = max(k-step_decr, 3)
+                k = max(k-k_decr, 3)
                 step = int(np.ceil(k * step_ratio))
                 print((ii, k, step, np.mean(cur_acc)))
         
