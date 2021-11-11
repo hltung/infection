@@ -262,7 +262,7 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, **mcmc_params):
         tot_acc = tot_acc / (M_pass * (1 + np.ceil( (n_inf - k)/step )) )
     else:
         # change_len_start = time.time()
-        perm, outward = changeLength(graf, n_inf, perm, outward, q)
+        perm, outward, tot_acc = changeLength(graf, n_inf, perm, outward, q)
         
         n_inf = len(perm)
         # change_len_end = time.time()            
@@ -333,7 +333,7 @@ def changeLength(graf, n_inf, perm, outward, q):
     #     print(orig_out)
     #     print(outward)
     #     assert False
-    return perm, outward
+    return perm, outward, acc
 
 
 """
