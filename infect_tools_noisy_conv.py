@@ -218,8 +218,10 @@ def inferInfection(graf, q, **mcmc_params):
     #print(prop_accs)
 
     print("done:", done)
+    dist1 = freq1 / np.sum(freq1)
+    dist2 = freq2 / np.sum(freq2)
     
-    return(freq1 / np.sum(freq1))
+    return((freq1 + freq2) / 2)
     
 
 def updatePerm(graf, perm, q, n_inf, freq, outward, **mcmc_params):
