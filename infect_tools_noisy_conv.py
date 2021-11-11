@@ -90,9 +90,7 @@ REQUIRE: some nodes of graf has "infected" (binary) attribute
 
 """
 
-def inferInfection(graf, q, min_iters=500, max_iters=10000, M_pass=1, M_burn=50, M_rootsamp=10,
-                   k_root=5, k=10, conv_thr=0.05, step=1):
-    
+def inferInfection(graf, q, **mcmc_params):
     
     
     ## generates an initial tree and initial sequence from the tree
@@ -126,18 +124,37 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_pass=1, M_burn=50,
     dist = 0
     prop_accs = []
     
+    conv_thr = mcmc_params["conv_thr"]
+    min_iters = mcmc_params["min_iters"]
+    max_iters = mcmc_params["max_iters"]
+    
+    M_burn = mcmc_params["M_burn"]
+    k = mcmc_params["k"]
+    step_ratio = mcmc_params["step_ratio"]
+    
+    acc_block = mcmc_params["acc_block"]
+    acc_cut = mcmc_params["acc_cut"]
+    step_decr = mcmc_params["step_decr"]
+    
     while not done and ii < max_iters:
         if ii%500 == 0:
             print('loop:', ii)
         
         burn_in = ii < M_burn
+        mcmc_params["burn_in"] = burn_in
         
-        mcmc_params = {"burn_in" : burn_in,
-                   "k_root" : k_root,   
-                   "k" : k,
-                   "M_pass" : M_pass,
-                   "step" : step,
-                   "M_rootsamp" : M_rootsamp}
+        step = int(np.ceil(k * step_ratio))
+        if ii % acc_block == acc_block-1:
+            cur_acc = prop_accs[(ii-acc_block-1):(ii+1)]
+            
+            if (np.mean(cur_acc) < acc_cut):
+                
+                k = max(k-step_decr, 3)
+                step = int(np.ceil(k * step_ratio))
+                print((ii, k, step, np.mean(cur_acc)))
+        
+        mcmc_params["step"] = step
+        mcmc_params["k"] = k
         
         perm1, n_inf1, freq1, outward1, prop_acc1 = updatePerm(graf1, perm1, q, n_inf1, freq1, outward1, **mcmc_params)
         perm2, n_inf2, freq2, outward2, prop_acc2 = updatePerm(graf2, perm2, q, n_inf2, freq2, outward2, **mcmc_params)
@@ -197,6 +214,8 @@ def inferInfection(graf, q, min_iters=500, max_iters=10000, M_pass=1, M_burn=50,
     
     plt.scatter(list(range(len(prop_accs))), prop_accs)
     plt.show()
+
+    #print(prop_accs)
 
     print("done:", done)
     return(freq1 / np.sum(freq1))
@@ -380,7 +399,7 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, **mcmc_params):
                     w[p[0]] = w[p[0]] + 1
                 
             
-            w = w / np.sum(w)
+            #w = w / np.sum(w)
             
             out_new = computeOutDegreeFromSeq(graf, new_perm)
             
@@ -389,10 +408,11 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, **mcmc_params):
             denom2 = np.sum(np.log(out_new[1:k]))
             thr = denom1 - denom2
             
+            acc = acc + np.exp(min(0, thr))
+            
             if random() < np.exp(min(0, thr)):
                 perm[0:k] = new_perm
                 outward[0:k] = out_new
-                acc = acc + 1
             adjustSubtreeSizes(graf, perm[0:k], perm[0])
             
             #start_block_end = time.time()
@@ -424,8 +444,9 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, **mcmc_params):
             # if (random() < 0.1):
             #     print(thr)
             
+            acc = acc + np.exp(min(0, thr))
+            
             if random() < np.exp(min(0, thr)):
-                acc = acc + 1
                 perm = pot_perm
                 outward[cur_pos: cur_pos + k] = new_out_subseq
             #mid_switch_end = time.time()
