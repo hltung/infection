@@ -71,12 +71,12 @@ eps = 0.2
 
 mcmc_params = {"M_burn" : 200,
                "k_root" : 25,
-               "k" : 30,
+               "k" : 50,
                "M_pass" : 1,
                "step_ratio" : 0.4,
                "M_rootsamp" : 25,
                "acc_block" : 30,
-               "acc_cut" : 0.1,
+               "acc_cut" : 0.075,
                "k_decr" : 5}
 
 
@@ -91,7 +91,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=1000, max_iters=150000, conv_thr=0.05, **mcmc_params)
+    freq = inferInfection(foo, q, min_iters=2000, max_iters=150000, conv_thr=0.1, **mcmc_params)
     end = time.time()
     print('time:', end - start)
     times.append(end - start)

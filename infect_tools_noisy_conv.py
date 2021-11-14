@@ -137,7 +137,7 @@ def inferInfection(graf, q, **mcmc_params):
     k_decr = mcmc_params["k_decr"]
     
     while not done and ii < max_iters:
-        if ii%500 == 0:
+        if ii%1000 == 0:
             print('loop:', ii)
         
         burn_in = ii < M_burn
@@ -196,7 +196,7 @@ def inferInfection(graf, q, **mcmc_params):
                     
                 #     ii = 0
                 
-            if ii % 500 == 0:
+            if ii % 1000 == 0:
                 print(dist)
                 print(np.mean(prop_accs))
         # if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
@@ -218,10 +218,10 @@ def inferInfection(graf, q, **mcmc_params):
     #print(prop_accs)
 
     print("done:", done)
-    dist1 = freq1 / np.sum(freq1)
-    dist2 = freq2 / np.sum(freq2)
+    distr1 = freq1 / np.sum(freq1)
+    distr2 = freq2 / np.sum(freq2)
     
-    return((freq1 + freq2) / 2)
+    return((distr1 + distr2) / 2)
     
 
 def updatePerm(graf, perm, q, n_inf, freq, outward, **mcmc_params):
