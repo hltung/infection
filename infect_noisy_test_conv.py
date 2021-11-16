@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from random import *
 import time 
 
-foo = Graph.Lattice(dim=[10, 10], circular=False)
+foo = Graph.Lattice(dim=[80, 80], circular=False)
 
 # foo = Graph.Erdos_Renyi(n=200, m=1000)
 
@@ -53,7 +53,7 @@ m = len(foo.es)
 
 n_inf = 100
 q = 1
-eps = 0.2
+eps = 0.1
 
 
 
@@ -70,11 +70,11 @@ eps = 0.2
 #100000 is suffcient maxiter for 200 nodes
 
 mcmc_params = {"M_burn" : 200,
-               "k_root" : 25,
+               "k_root" : 20,
                "k" : 50,
                "M_pass" : 1,
                "step_ratio" : 0.4,
-               "M_rootsamp" : 25,
+               "M_rootsamp" : 10,
                "acc_block" : 30,
                "acc_cut" : 0.075,
                "k_decr" : 5}
@@ -91,7 +91,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=2000, max_iters=150000, conv_thr=0.1, **mcmc_params)
+    freq = inferInfection(foo, q, min_iters=3000, max_iters=5000, conv_thr=0.1, **mcmc_params)
     end = time.time()
     print('time:', end - start)
     times.append(end - start)
