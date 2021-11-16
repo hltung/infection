@@ -51,10 +51,12 @@ foo = Graph.Lattice(dim=[80, 80], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 100
+n_inf = 120
 q = 1
-eps = 0.1
 
+
+eps_ls = [0.3, 0.2, 0.1, 0.05, 0.01] # must be decreasing
+succ = [0 for i in eps_ls]
 
 
 ## wuhan 3426
@@ -70,8 +72,8 @@ eps = 0.1
 #100000 is suffcient maxiter for 200 nodes
 
 mcmc_params = {"M_burn" : 200,
-               "k_root" : 20,
-               "k" : 50,
+               "k_root" : 15,
+               "k" : 60,
                "M_pass" : 1,
                "step_ratio" : 0.4,
                "M_rootsamp" : 10,
@@ -80,7 +82,7 @@ mcmc_params = {"M_burn" : 200,
                "k_decr" : 5}
 
 
-n_trials = 10
+n_trials = 20
 in_set = 0
 times = []
 
@@ -91,7 +93,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=3000, max_iters=5000, conv_thr=0.1, **mcmc_params)
+    freq = inferInfection(foo, q, min_iters=3000, max_iters=6000, conv_thr=0.1, **mcmc_params)
     end = time.time()
     print('time:', end - start)
     times.append(end - start)
@@ -113,23 +115,36 @@ for i in range(n_trials):
     #     if (ix in freq):
     #         freqls[ix] = freq[ix]
     
-    print('epsilon:', eps)
-    print('credible set')
+    #print('epsilon:', eps)
+    #print('credible set')
     tot = 0
     sorted_inds = np.flip(np.argsort(freq))
-    cred_set = []
-    for k in sorted_inds:
-        cred_set.append(k)
+    
+    cred_sizes = []
+    
+    cur_eps_ix = 0
+    for i in range(n_inf):
+        k = sorted_inds[i]
         tot = tot + freq[k]
         print((k, freq[k]))
-        if tot > 1 - eps:
+        if tot > 1 - eps_ls[cur_eps_ix]:
+            cred_sizes.append(i)
+            cur_eps_ix = cur_eps_ix + 1
+            
+        if (cur_eps_ix >= len(eps_ls)):
             break
-    print(cred_set)
-    if true_order[0] in cred_set:
-        in_set = in_set + 1
-    print(in_set)
+            
+    print(cred_sizes)
+    
+    root_post_ix = np.where(sorted_inds == true_order[0])[0][0]
+    
+    for i in range(len(eps_ls)):
+        succ[i] = succ[i] + (root_post_ix <= cred_sizes[i])
+    
+    print("coverage:")
+    print(succ)
     print('current times',times)
-print('proportion in credible set:', in_set / n_trials)
+
 print('times:', times)
 
     
