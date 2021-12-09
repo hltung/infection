@@ -51,9 +51,9 @@ foo = Graph.Lattice(dim=[80, 80], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
-n_inf = 120
-q = 1
+n_inf = 200
 
+q = 1
 
 eps_ls = [0.3, 0.2, 0.1, 0.05, 0.01] # must be decreasing
 succ = [0 for i in eps_ls]
@@ -73,7 +73,7 @@ succ = [0 for i in eps_ls]
 
 mcmc_params = {"M_burn" : 200,
                "k_root" : 15,
-               "k" : 60,
+               "k" : 100,
                "M_pass" : 1,
                "step_ratio" : 0.4,
                "M_rootsamp" : 10,
@@ -93,7 +93,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=3000, max_iters=6000, conv_thr=0.1, **mcmc_params)
+    freq = inferInfection(foo, q, min_iters=5000, max_iters=8000, conv_thr=0.1, **mcmc_params)
     end = time.time()
     print('time:', end - start)
     times.append(end - start)
