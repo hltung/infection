@@ -15,16 +15,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from random import *
 import time 
+import pickle
 
-foo = Graph.Lattice(dim=[80, 80], circular=False)
+#foo = Graph.Lattice(dim=[100, 100], circular=False)
 
-# foo = Graph.Erdos_Renyi(n=200, m=1000)
+# foo = Graph.Erdos_Renyi(n=10000, m=50000)
+# foo = foo.clusters().giant()
 
-
-# foo = igraph.read("data/global-net.dat")
+foo = igraph.read("data/global-net.dat")
 # foo.delete_vertices(0)
-# foo.to_undirected()
-# foo.simplify()
+foo.to_undirected()
+foo.simplify()
 # # foo = foo.clusters().giant()
 
 # filename = "data/inf-euroroad.txt"
@@ -51,7 +52,12 @@ foo = Graph.Lattice(dim=[80, 80], circular=False)
 n = len(foo.vs)
 m = len(foo.es)
 
+<<<<<<< HEAD
 n_inf = 200
+=======
+n_inf = 100
+q = 0.6
+>>>>>>> de9b01fe3e6a437811f1883d4d449e024c0e9cf8
 
 q = 1
 
@@ -73,7 +79,11 @@ succ = [0 for i in eps_ls]
 
 mcmc_params = {"M_burn" : 200,
                "k_root" : 15,
+<<<<<<< HEAD
                "k" : 100,
+=======
+               "k" : 50,
+>>>>>>> de9b01fe3e6a437811f1883d4d449e024c0e9cf8
                "M_pass" : 1,
                "step_ratio" : 0.4,
                "M_rootsamp" : 10,
@@ -82,18 +92,65 @@ mcmc_params = {"M_burn" : 200,
                "k_decr" : 5}
 
 
-n_trials = 20
+n_trials = 10
 in_set = 0
 times = []
 
+out_list = []
+
 for i in range(n_trials):
     first = choices(list(range(n)), foo.degree())[0]
+    #first = 0
+    #first = 5050
     true_order = simulateInfection(foo, first, n_inf, q)    
 
     print('trial:', i)
     start = time.time()
     
-    freq = inferInfection(foo, q, min_iters=5000, max_iters=8000, conv_thr=0.1, **mcmc_params)
+
+    # Grid graph; n = 100; q = 1; fixed root
+    # freq = inferInfection(foo, q, min_iters=4000, max_iters=25000, conv_thr=0.1, **mcmc_params)
+    
+    #ER graph; n = 100; q = 1; fixed root
+    #freq = inferInfection(foo, q, min_iters=7000, max_iters=30000, conv_thr=0.05, **mcmc_params)
+    
+    # ER graph; n = 200; q = 1; fixed root
+    #freq = inferInfection(foo, q, min_iters=7500, max_iters=50000, conv_thr=0.05, **mcmc_params)
+    
+    # ER graph; n = 100; q = 0.75; fixed root
+    # freq = inferInfection(foo, q, min_iters=7000, max_iters=30000, conv_thr=0.1, **mcmc_params)
+    
+    # ER graph; n = 100; q = 0.5; fixed root
+    # freq = inferInfection(foo, q, min_iters=7000, max_iters=35000, conv_thr=0.1, **mcmc_params)
+    
+    # ER graph; n = 100; q = 0.25; fixed root
+    # freq = inferInfection(foo, q, min_iters=7000, max_iters=40000, conv_thr=0.1, **mcmc_params)
+    
+    # Grid graph; n = 100; q = 0.75; fixed root
+    #freq = inferInfection(foo, q, min_iters=6000, max_iters=40000, conv_thr=0.1, **mcmc_params)
+    
+    # Grid graph; n = 100; q = 0.5; fixed root
+    #freq = inferInfection(foo, q, min_iters=7000, max_iters=40000, conv_thr=0.1, **mcmc_params)
+    
+    # Grid graph; n = 100; q = 0.25; fixed root?
+    #freq = inferInfection(foo, q, min_iters=7500, max_iters=50000, conv_thr=0.1, **mcmc_params)
+    
+    # Grid graph; n = 200; q = 1; fixed root
+    #freq = inferInfection(foo, q, min_iters=7500, max_iters=50000, conv_thr=0.075, **mcmc_params)
+    
+    # Grid graph; n = 300; q = 1; fixed root
+    #freq = inferInfection(foo, q, min_iters=7500, max_iters=100000, conv_thr=0.05, **mcmc_params)
+    
+    #ER graph; n = 300; q = 1; fixed root
+    #freq = inferInfection(foo, q, min_iters=9000, max_iters=100000, conv_thr=0.05, **mcmc_params)
+    
+    # Road graph; n = 100; q = 0.6; select node by degree
+    #freq = inferInfection(foo, q, min_iters=50000, max_iters=500000, conv_thr=0.05, **mcmc_params)
+    
+    # Airport graph; n = 100; q = 0.6; select node by degree
+    freq = inferInfection(foo, q, min_iters=50000, max_iters=500000, conv_thr=0.05, **mcmc_params)
+    
+
     end = time.time()
     print('time:', end - start)
     times.append(end - start)
@@ -120,6 +177,7 @@ for i in range(n_trials):
     tot = 0
     sorted_inds = np.flip(np.argsort(freq))
     
+    print('sorted priors:')
     cred_sizes = []
     
     cur_eps_ix = 0
@@ -144,10 +202,25 @@ for i in range(n_trials):
     print("coverage:")
     print(succ)
     print('current times',times)
+    
+    save_values = {'true_order': true_order,
+                   'freq' : freq,
+                   'cred_sizes' : cred_sizes}
+
+    out_list.append(save_values)
 
 print('times:', times)
 
+out_filename = 'airport_outputs'
+outfile = open(out_filename,'wb')
+test_type = {'graph_type' : 'airport',
+             'n_inf' : n_inf,
+             'q' : q,
+             'pick_root' : 'randomly by degree'}
+pickle.dump((test_type,out_list,succ,times),outfile)
+outfile.close()
     
+
 # inf_ixs = [vix for vix in range(n) if foo.vs[vix]["infected"]]
 # bar = foo.subgraph([foo.vs[i] for i in inf_ixs])
 # bar.vs["inf_label"] = inf_ixs

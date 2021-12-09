@@ -503,7 +503,8 @@ def generateInfectionTree(graf):
     
     bar = graf.subgraph([graf.vs[ix] for ix in tree_vtxs]) 
     
-    wilsonTree(bar, 0)
+    rt = choices(bar.vs)[0].index 
+    wilsonTree(bar, rt)
     tree_eixs = [ix for ix in range(len(bar.es)) if bar.es[ix]["tree"]]
     
     for eix in tree_eixs:        
