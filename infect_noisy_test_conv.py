@@ -52,12 +52,9 @@ foo.simplify()
 n = len(foo.vs)
 m = len(foo.es)
 
-<<<<<<< HEAD
-n_inf = 200
-=======
+
 n_inf = 100
 q = 0.6
->>>>>>> de9b01fe3e6a437811f1883d4d449e024c0e9cf8
 
 q = 1
 
@@ -79,11 +76,8 @@ succ = [0 for i in eps_ls]
 
 mcmc_params = {"M_burn" : 200,
                "k_root" : 15,
-<<<<<<< HEAD
                "k" : 100,
-=======
                "k" : 50,
->>>>>>> de9b01fe3e6a437811f1883d4d449e024c0e9cf8
                "M_pass" : 1,
                "step_ratio" : 0.4,
                "M_rootsamp" : 10,
