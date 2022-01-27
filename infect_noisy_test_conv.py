@@ -52,9 +52,11 @@ foo = foo.clusters().giant()
 n = len(foo.vs)
 m = len(foo.es)
 
+
 n_inf = 100
 q = 0.6
 
+q = 1
 
 eps_ls = [0.3, 0.2, 0.1, 0.05, 0.01] # must be decreasing
 succ = [0 for i in eps_ls]
@@ -74,6 +76,7 @@ succ = [0 for i in eps_ls]
 
 mcmc_params = {"M_burn" : 200,
                "k_root" : 15,
+               "k" : 100,
                "k" : 50,
                "M_pass" : 1,
                "step_ratio" : 0.4,
@@ -98,6 +101,7 @@ for i in range(n_trials):
     print('trial:', i)
     start = time.time()
     
+
     # Grid graph; n = 100; q = 1; fixed root
     # freq = inferInfection(foo, q, min_iters=4000, max_iters=25000, conv_thr=0.1, **mcmc_params)
     
@@ -141,6 +145,7 @@ for i in range(n_trials):
     #freq = inferInfection(foo, q, min_iters=50000, max_iters=500000, conv_thr=0.05, **mcmc_params)
     
     
+
     end = time.time()
     print('time:', end - start)
     times.append(end - start)
