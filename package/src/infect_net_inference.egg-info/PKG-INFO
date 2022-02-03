@@ -1,8 +1,10 @@
 Metadata-Version: 2.1
 Name: infect-net-inference
-Version: 0.0.1
+Version: 0.0.2
 Summary: Simulate an infection process on a graph as well as create a credible set for the patient zero given a set of infected nodes on a graph.
-Home-page: UNKNOWN
+Home-page: https://github.com/hltung/infection/tree/adjust-k
+Author: Min Xu and Hwai-Liang Tung
+Author-email: hwai-liang_tung@brown.edu
 License: UNKNOWN
 Description: # Infection
         
@@ -19,8 +21,14 @@ Description: # Infection
         ## Usage
         
         ```python
-        from  import *
+        from infect_tools_noisy_conv import *
         
+        # Simulate an infection on graf. Outputs a list containing the infected nodes in the order they were infected 
+        order = simulateInfection(graf, first, n_inf, q) 
+        
+        # Create a dict mapping each node index to the posterior root probability
+        freq = inferInfection(foo, q, **mcmc_params)
+            
         
         ```
         
