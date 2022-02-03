@@ -1,8 +1,0 @@
-README.md
-setup.py
-src/infect_tools_noisy_conv.py
-src/infection.egg-info/PKG-INFO
-src/infection.egg-info/SOURCES.txt
-src/infection.egg-info/dependency_links.txt
-src/infection.egg-info/requires.txt
-src/infection.egg-info/top_level.txt

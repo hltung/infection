@@ -1,19 +1,19 @@
 # Infection
 
-This project will allow you to simulate an infection process on a graph and also create a credible set for the patient zero given a set of infected nodes on a graph.
+This package will allow you to create a credible set for the patient zero given a set of infected nodes on a graph.
 
 ## Installation
 
 Run the following to install:
 
 ```python
-pip install infection
+pip install infect-net-inference
 ```
 
 ## Usage
 
 ```python
-from infection import *
+from  import *
 
 
 ```

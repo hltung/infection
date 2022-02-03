@@ -1,0 +1,29 @@
+Metadata-Version: 2.1
+Name: infection-inference
+Version: 0.0.1
+Summary: Simulate an infection process on a graph as well as create a credible set for the patient zero given a set of infected nodes on a graph.
+Home-page: UNKNOWN
+License: UNKNOWN
+Description: # Infection
+        
+        This project will allow you to simulate an infection process on a graph and also create a credible set for the patient zero given a set of infected nodes on a graph.
+        
+        ## Installation
+        
+        Run the following to install:
+        
+        ```python
+        pip install infection
+        ```
+        
+        ## Usage
+        
+        ```python
+        from infection import *
+        
+        
+        ```
+        
+Platform: UNKNOWN
+Description-Content-Type: text/markdown
+Provides-Extra: dev

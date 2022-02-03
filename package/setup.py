@@ -11,10 +11,10 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="infection",
+    name="infect-net-inference",
     version="0.0.1",
     description="Simulate an infection process on a graph as well as create a credible set for the patient zero given a set of infected nodes on a graph.",
-    py_modules=["infect_tools_noisy_conv"],
+    py_modules=["infect_tools_noisy_conv", "tree_tools"],
     package_dir={'':'src'},
     classifiers=[],
     long_description=long_description,

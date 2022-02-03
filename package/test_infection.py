@@ -18,7 +18,7 @@ def outSubseqTest():
     foo = Graph.Lattice(dim=[10, 10], circular=False)    
     perm = [65, 64, 74, 84, 63, 53, 52, 51, 62, 55, 83, 72, 42, 61, 75, 93, 82, 54, 60]
     out = computeOutDegreeFromSeq(foo, perm)
-    assert perm.equals([0, 1, 5, 2, 4])
+    print(out)
     # perm = [0, 1, 5, 2, 4]
     # out = computeOutDegreeSubseq(foo, perm, out[1], 2, 3)
     
