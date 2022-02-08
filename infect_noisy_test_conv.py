@@ -77,7 +77,6 @@ succ = [0 for i in eps_ls]
 mcmc_params = {"M_burn" : 200,
                "k_root" : 15,
                "k" : 100,
-               "k" : 50,
                "M_pass" : 1,
                "step_ratio" : 0.4,
                "M_rootsamp" : 10,
