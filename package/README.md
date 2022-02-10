@@ -23,3 +23,7 @@ freq = inferInfection(foo, q, **mcmc_params)
     
 
 ```
+
+See example.py for interpreting the inference output.
+
+
