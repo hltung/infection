@@ -137,8 +137,8 @@ def inferInfection(graf, q, **mcmc_params):
     k_decr = mcmc_params["k_decr"]
     
     while not done and ii < max_iters:
-        if ii%1000 == 0:
-            print('loop:', ii)
+        #if ii%1000 == 0:
+        #    print('loop:', ii)
         
         burn_in = ii < M_burn
         mcmc_params["burn_in"] = burn_in
@@ -151,7 +151,9 @@ def inferInfection(graf, q, **mcmc_params):
                 
                 k = max(k-k_decr, 3)
                 step = int(np.ceil(k * step_ratio))
-                print((ii, k, step, np.mean(cur_acc)))
+                
+                print("Cutting k to %d at iter %d ; acc ratio %.3f" % 
+                      (k, ii, np.mean(cur_acc)))
         
         mcmc_params["step"] = step
         mcmc_params["k"] = k
@@ -169,9 +171,9 @@ def inferInfection(graf, q, **mcmc_params):
             # dist = np.linalg.norm(norm_freq1 - norm_freq2)
             if ii > min_iters + M_burn:
                 done = (dist < conv_thr)
-                if done:
-                    print('total loops:', ii)
-                    break
+                #if done:
+                #    print('total loops:', ii)
+                #    break
                 # elif ii > 2000 + M_burn and tv > 0.1:
                 #     graf1 = graf.copy()
                 #     graf2 = graf.copy()
@@ -197,8 +199,8 @@ def inferInfection(graf, q, **mcmc_params):
                 #     ii = 0
                 
             if ii % 1000 == 0:
-                print(dist)
-                print(np.mean(prop_accs))
+                print("iter: %d   dist %.3f   acc %.3f" % (ii, dist, np.mean(prop_accs)))
+                
         # if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
         #     k_mid1 = k_mid1 - 1
         #     print('loop:', ii)
