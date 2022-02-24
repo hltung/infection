@@ -212,8 +212,8 @@ def inferInfection(graf, q, **mcmc_params):
         #print(prop_acc1)
         ii = ii + 1
     
-    plt.scatter(list(range(len(prop_accs))), prop_accs)
-    plt.show()
+    #plt.scatter(list(range(len(prop_accs))), prop_accs)
+    #plt.show()
 
     #print(prop_accs)
 
