@@ -15,8 +15,8 @@ from random import *
 
 import sys
 
-n_inf = sys.argv[1]
-q = sys.argv[2]
+n_inf = int(sys.argv[1])
+q = float(sys.argv[2])
 
 
 foo = Graph.Lattice(dim=[100, 100], circular=False)
