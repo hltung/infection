@@ -21,13 +21,13 @@ import pickle
 fname = "lattice_vary_q.pkl"
 init = False
 
-n_inf = 100
+n_inf = 250
 
 q_ls = [1, 0.7, 0.4]
 
-eps_ls = [0.3, 0.2, 0.1, 0.05, 0.01] # must be decreasing
+eps_ls = [0.5, 0.3, 0.2, 0.1, 0.05, 0.01] # must be decreasing
 
-foo = Graph.Lattice(dim=[200, 200], circular=False)
+foo = Graph.Lattice(dim=[100, 100], circular=False)
 
 n = len(foo.vs)
 m = len(foo.es)
@@ -36,13 +36,13 @@ ntrial = 200
 
 
 mcmc_params = {"M_burn" : 200,
-               "k_root" : 15,
-               "k" : 40,
+               "k_root" : 10,
+               "k" : 80,
                "M_pass" : 1,
                "step_ratio" : 0.4,
-               "M_rootsamp" : 10,
+               "M_rootsamp" : 15,
                "acc_block" : 30,
-               "acc_cut" : 0.075,
+               "acc_cut" : 0.1,
                "k_decr" : 5}
 
 calctimes = np.zeros([ntrial, len(q_ls)])
@@ -64,7 +64,7 @@ for i in range(len(q_ls)):
         true_order = simulateInfection(foo, start, n_inf, q)    
 
         stime = time.time()
-        freq = inferInfection(foo, q, min_iters=6000, max_iters=60000, conv_thr=0.05, **mcmc_params)
+        freq = inferInfection(foo, q, min_iters=5000, max_iters=60000, conv_thr=0.1, **mcmc_params)
         etime = time.time()
         
         elapsed = etime - stime

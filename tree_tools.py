@@ -79,6 +79,7 @@ def getAncestors(graf, utilde, u = None):
             ants.append(my_pa)
             cur_node = my_pa
 
+
 def getUnmarkedAncestor(graf, utilde, marked, middle=False, mid_nodes=[]):
     
     #assert graf.vs[utilde]["pa"] != None
@@ -308,54 +309,74 @@ OUTPUT: N/A
 EFFECT: creates node attribute "subtree_size" on graf
        creates node attribute "pa" on graf
 """
-def countSubtreeSizes(graf, root, prev=None):
+def countSubtreeSizes(graf, root):
+    return countSubtreeSizes_helper(graf, root)
+
+def countSubtreeSizes_helper(graf, cur_node, prev=None):
     n = len(graf.vs)
     istree = len(graf.es) == (n-1)
 
-    graf.vs[root]["pa"] = prev
+    graf.vs[cur_node]["pa"] = prev
     
     counter = 1
     
-    edge_ixs = graf.incident(root)
+    edge_ixs = graf.incident(cur_node)
     
     for eid in edge_ixs:
         my_e = graf.es[eid]
         if istree or my_e["tree"]:
-            next_node = otherNode(my_e, root)
+            next_node = otherNode(my_e, cur_node)
 
             if (next_node != prev):
-                counter = counter + countSubtreeSizes(graf, next_node, root)
+                counter = counter + countSubtreeSizes_helper(graf, next_node, cur_node)
         
-    graf.vs[root]["subtree_size"] = counter
+    graf.vs[cur_node]["subtree_size"] = counter
     return(counter)
 
-def adjustSubtreeSizes(graf, nodes, root, prev=None):
+
+"""
+Assumes "root" is in nodes. Sets root["pa"] = None and
+adjusts "pa" and "subtree_size" attributes of all v in "nodes"
+
+"subtrees_size" is computed for with respect to the subtree induced 
+by the subset of "nodes"
+
+INPUT: graf
+       
+NOTE: modifies "pa" and "subtree_size" attribute on node in "nodes"
+
+"""
+def adjustSubtreeSizes(graf, nodes, root):    
+    return adjustSubtreeSizes_helper(graf, nodes, cur_node=root)
+
+def adjustSubtreeSizes_helper(graf, nodes, cur_node, prev=None):
     n = len(graf.vs)
     istree = len(graf.es) == (n-1)
 
-    graf.vs[root]["pa"] = prev
+    graf.vs[cur_node]["pa"] = prev
     
-    if root not in nodes:
-        counter = graf.vs[root]["subtree_size"]
-        return counter
+    if cur_node not in nodes:
+        #counter = graf.vs[cur_node]["subtree_size"]
+        #return counter
+        return 0
     
     counter = 1
     
-    edge_ixs = graf.incident(root)
+    edge_ixs = graf.incident(cur_node)
     
     for eid in edge_ixs:
         my_e = graf.es[eid]
         if (not istree) and (not my_e["tree"]):
             continue
         
-        next_node = otherNode(my_e, root)
+        next_node = otherNode(my_e, cur_node)
             
         if (next_node == prev):
             continue
         else:
-            counter = counter + adjustSubtreeSizes(graf, nodes, next_node, root)
+            counter = counter + adjustSubtreeSizes_helper(graf, nodes, next_node, cur_node)
         
-    graf.vs[root]["subtree_size"] = counter
+    graf.vs[cur_node]["subtree_size"] = counter
     return(counter)
 
 
@@ -426,19 +447,22 @@ NOTE: modifies "pa" attribute on nodes
       
       
 """
-def switchStart(graf, perm, k, h_weight, root_dict):
+def switchStart(graf, perm, k, h_weight):
     mypi = [0] * k
     
     mypi[0] = choices(perm[0:k], h_weight)[0]
     
+    if (mypi[0] != perm[0]):
+        adjustSubtreeSizes(graf, perm[0:k], root=mypi[0])
+    
     #print(mypi[0])
        
-    g = graf.copy()
-    if mypi[0] in root_dict:
-        g = root_dict[mypi[0]]
-    else:
-        adjustSubtreeSizes(g, perm[0:k], root=mypi[0])
-        root_dict[mypi[0]] = g
+    # g = graf.copy()
+    # if mypi[0] in root_dict:
+    #     g = root_dict[mypi[0]]
+    # else:
+    #     adjustSubtreeSizes(g, perm[0:k], root=mypi[0])
+    #     root_dict[mypi[0]] = g
     
     remain_nodes = [i for i in perm[0:k] if i != mypi[0]]
     mypi[1:k] = np.random.permutation(remain_nodes)
@@ -455,7 +479,7 @@ def switchStart(graf, perm, k, h_weight, root_dict):
         v = mypi[j]
 
         if (v not in marked):
-            v_anc = getUnmarkedAncestor(g, v, marked)
+            v_anc = getUnmarkedAncestor(graf, v, marked)
             old_pos = mypi_inv[v_anc]
             mypi[old_pos] = v
             mypi[j] = v_anc
@@ -465,8 +489,9 @@ def switchStart(graf, perm, k, h_weight, root_dict):
         marked[mypi[j]] = 1
             
     
-    return mypi, root_dict 
-
+    
+    
+    return mypi
 
 
 """
@@ -580,27 +605,40 @@ def countAllHist(graf, root, get_subtree_sz=True):
         
 
 """
+
+Computes hist(u, subtree) for all u in "perm" with
+respect to the subtree induced by the subset "perm"
+
 REQUIRE: graf has node attribute "subtree_size"
          graf has node attribute "pa"
+         
 
 
 INPUT: "graf" -- igraph object. 
-       "nodes" -- vtxs to compute the probabilities for 
-       "root" node as an integer. Unimportant
+       "perm" -- vtxs to compute the probabilities for 
+       "root" node as an integer. Unimportant. Has to be in perm
        
-OUTPUT: n-dim nparray of probabilities
+OUTPUT: hist, n-dim nparray of probabilities
+        hist[i] = hist(perm[i], subtree)
 """
-def countSomeHist(graf, nodes, root):
-    n = len(graf.vs)
+def countSomeHist(graf, perm, root):
+    #n = len(graf.vs)
     
-    adjustSubtreeSizes(graf, nodes, root)
+    n = len(perm)
+    perm_inv = {}
+    
+    for i in range(n):
+        perm_inv[perm[i]] = i
+        
+    
+    adjustSubtreeSizes(graf, perm, root)
     hist = [0] * n
     
     ntree = graf.vs[root]["subtree_size"]
     
     S = collections.deque([root]) ## queue of nodes to visit
 
-    hist[root] = 0
+    hist[perm_inv[root]] = 0
     tree_nodes = []
     
     while (len(S) > 0):
@@ -608,13 +646,18 @@ def countSomeHist(graf, nodes, root):
  
         tree_nodes.append(cur_node)
         
-        hist[root] = hist[root] - np.log(graf.vs[cur_node]["subtree_size"])
+        hist[perm_inv[root]] = hist[perm_inv[root]] - \
+                np.log(graf.vs[cur_node]["subtree_size"])
 
         node_ixs = graf.neighbors(cur_node)
+        
         for next_node in node_ixs:
+            if next_node not in perm_inv:
+                continue
             
             if (graf.vs[next_node]["pa"] != cur_node):
                 continue
+            
             S.append(next_node)
             
     S = collections.deque([root]) ## queue of nodes to visit
@@ -625,13 +668,15 @@ def countSomeHist(graf, nodes, root):
         node_ixs = graf.neighbors(cur_node)
         
         for next_node in node_ixs:
+            if next_node not in perm_inv:
+                continue
             
             if (graf.vs[next_node]["pa"] != cur_node):
                 continue
             
             S.append(next_node)
             
-            hist[next_node] = hist[cur_node] + \
+            hist[perm_inv[next_node]] = hist[perm_inv[cur_node]] + \
                     np.log(graf.vs[next_node]["subtree_size"] /  \
                            (ntree - graf.vs[next_node]["subtree_size"]))
             
@@ -640,7 +685,7 @@ def countSomeHist(graf, nodes, root):
     
     thist = np.array([0] * n, dtype=float)
 
-    thist[nodes] = np.exp(loghist[nodes] - max(loghist[nodes]))
+    thist = np.exp(loghist - max(loghist))
 
     return thist/np.sum(thist)
         

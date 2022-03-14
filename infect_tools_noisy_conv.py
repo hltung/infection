@@ -114,6 +114,7 @@ def inferInfection(graf, q, **mcmc_params):
     #print(n_inf)
     
     
+    
     n = len(graf1.vs)
     freq1 = np.zeros(n)
     freq2 = np.zeros(n)
@@ -137,8 +138,7 @@ def inferInfection(graf, q, **mcmc_params):
     k_decr = mcmc_params["k_decr"]
     
     while not done and ii < max_iters:
-        #if ii%1000 == 0:
-        #    print('loop:', ii)
+
         
         burn_in = ii < M_burn
         mcmc_params["burn_in"] = burn_in
@@ -149,7 +149,7 @@ def inferInfection(graf, q, **mcmc_params):
             
             if (np.mean(cur_acc) < acc_cut):
                 
-                k = max(k-k_decr, 3)
+                k = max(k-k_decr, 5)
                 step = int(np.ceil(k * step_ratio))
                 
                 print("Cutting k to %d at iter %d ; acc ratio %.3f" % 
@@ -170,45 +170,12 @@ def inferInfection(graf, q, **mcmc_params):
             dist = np.sum(np.abs(norm_freq1 - norm_freq2)) / 2
             # dist = np.linalg.norm(norm_freq1 - norm_freq2)
             if ii > min_iters + M_burn:
-                done = (dist < conv_thr)
-                #if done:
-                #    print('total loops:', ii)
-                #    break
-                # elif ii > 2000 + M_burn and tv > 0.1:
-                #     graf1 = graf.copy()
-                #     graf2 = graf.copy()
-                    
-                #     guess_inf1 = generateInfectionTree(graf1)
-                #     perm1 = generateSeqFromTree(graf1, guess_inf1)
-                #     outward1 = computeOutDegreeFromSeq(graf1, perm1)
-                    
-                #     guess_inf2 = generateInfectionTree(graf2)
-                #     perm2 = generateSeqFromTree(graf2, guess_inf2)
-                #     outward2 = computeOutDegreeFromSeq(graf2, perm2)
-                    
-                #     adjustSubtreeSizes(graf1, perm1, perm1[0])
-                #     adjustSubtreeSizes(graf2, perm2, perm2[0])
-                    
-                #     n_inf1 = len(perm1)
-                #     n_inf2 = len(perm2)
-                #     #print(n_inf)
-                    
-                #     freq1 = np.zeros(n)
-                #     freq2 = np.zeros(n)
-                    
-                #     ii = 0
                 
+                done = (dist < conv_thr)
+
             if ii % 1000 == 0:
                 print("iter: %d   dist %.3f   acc %.3f" % (ii, dist, np.mean(prop_accs)))
-                
-        # if prop_acc1 < 0.85 and prop_acc1 > 0 and k_mid1 > 5:
-        #     k_mid1 = k_mid1 - 1
-        #     print('loop:', ii)
-        #     print(dist)
-        #     print('k ', k_mid1)
-        
-        # if prop_acc2 < 0.85 and prop_acc2 > 0 and k_mid2 > 5:
-        #     k_mid2 = k_mid2 - 1
+
             
         prop_accs.append(prop_acc1)
         #print(prop_acc1)
@@ -232,21 +199,22 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, **mcmc_params):
     burn_in = mcmc_params["burn_in"]
     M_pass = mcmc_params["M_pass"]
     k = mcmc_params["k"]
+    k_root = mcmc_params["k_root"]
     step = mcmc_params["step"]
     
-    if random() < 0.5:
+    if random() < 0.6:
         ## Inner transposition loop, swapping        
-        h_weight = countAllHist(graf, perm[0], False)[0]
         
         for jj in range(M_pass):
+            h_weight = countSomeHist(graf, perm[0:k_root], perm[0])
             perm, outward, w, acc = nodesSwap(graf, n_inf, perm, outward, h_weight, **mcmc_params)
             tot_acc = acc + tot_acc
             if not burn_in:
                 freq = w + freq
+       
                 
         ## re-orient edges, pick tree in a way that sequence from perm preserved
         graf.es["tree"] = False
-        #tree_start = time.time()
         
         for kk in range(1,n_inf):
             cur_vix = perm[kk]
@@ -261,10 +229,13 @@ def updatePerm(graf, perm, q, n_inf, freq, outward, **mcmc_params):
             
             graf.vs[cur_vix]["pa"] = otherNode(graf.es[my_edge], cur_vix)
             
+
+            
         countSubtreeSizes(graf, perm[0])
-        #tree_end = time.time()
-        #print('remake tree:', tree_end - tree_start)
+
         tot_acc = tot_acc / (M_pass * (1 + np.ceil( (n_inf - k)/step )) )
+        
+        
     else:
         # change_len_start = time.time()
         perm, outward, acc = changeLength(graf, n_inf, perm, outward, q)
@@ -347,7 +318,7 @@ Potentially swap nodes in ordering
 EFFECT:     creates "tree" binary edge attribute
 
 """    
-def nodesSwap(graf, n_inf, perm, outward, all_weight, **mcmc_params):
+def nodesSwap(graf, n_inf, perm, outward, h_weight, **mcmc_params):
     
     M_rootsamp = mcmc_params["M_rootsamp"]
     step = mcmc_params["step"]
@@ -358,76 +329,41 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, **mcmc_params):
 
     w = np.zeros(len(graf.vs))
     
-    starts = []
+    starts = [0]
     for i in range(0, n_inf):
-        cur_start = step * i 
+        cur_start = step * i + 1
         if (cur_start >= n_inf - k):
             starts.append(n_inf - k)
             break
         else:
             starts.append(cur_start)
-            
-    #starts = []
-    #for i in range(0, n_inf-k_mid+1):
-    #    starts.append(n_inf-k_mid - (i*step % (n_inf-k_mid+1)))
-    #starts.append(0)
+
     
-    for i in starts:
-        cur_pos = i
+    for cur_pos in starts:
+        
         if (cur_pos == 0):
-            #start_block_start = time.time()
-            #print('switch block 0 to k')
-            ## deal with root separately
-            
-            h_weight = [0] * k
-            for i in range(k):
-                h_weight[i] = all_weight[perm[i]]
                 
-            
-            new_perm, root_dict = switchStart(graf, perm, k, h_weight, {})
-            
-            
-            h_weight = [0] * k_root
-            for i in range(k_root):
-                h_weight[i] = all_weight[perm[i]]
-            
-            
             for i in range(M_rootsamp):
-                p, root_dict = switchStart(graf, perm, k_root, h_weight, root_dict)
-                cur_out = computeOutDegreeFromSeq(graf, p)
+                            
+                new_perm = switchStart(graf, perm, k_root, h_weight)
                 
-                denom1 = np.sum(np.log(outward[1:k]))
-                denom2 = np.sum(np.log(cur_out[1:k]))
+                new_out = computeOutDegreeFromSeq(graf, new_perm)
+            
+                denom1 = np.sum(np.log(outward[1:k_root]))
+                denom2 = np.sum(np.log(new_out[1:k_root]))
                 thr = denom1 - denom2
             
                 if random() < np.exp(min(0, thr)):
-                    w[p[0]] = w[p[0]] + 1
-                
+                    w[new_perm[0]] = w[new_perm[0]] + 1
+                    perm[0:k_root] = new_perm[0:k_root]
+                    outward[0:k_root] = new_out
+                else:
+                    adjustSubtreeSizes(graf, perm[0:k_root], perm[0])
             
-            #w = w / np.sum(w)
-            
-            out_new = computeOutDegreeFromSeq(graf, new_perm)
-            
-            #thr = np.prod(np.divide(outward[1:k], out_new[1:k]))
-            denom1 = np.sum(np.log(outward[1:k]))
-            denom2 = np.sum(np.log(out_new[1:k]))
-            thr = denom1 - denom2
-            
-            acc = acc + np.exp(min(0, thr))
-            
-            if random() < np.exp(min(0, thr)):
-                perm[0:k] = new_perm
-                outward[0:k] = out_new
-            adjustSubtreeSizes(graf, perm[0:k], perm[0])
-            
-            #start_block_end = time.time()
-            #print('start blck:', start_block_end - start_block_start)
             
         else:
             #print('switch block start to start + k')
-    
-            ## regular swapping
-            #mid_switch_start = time.time()
+
             
             pot_perm = switchMiddle(graf, perm, cur_pos, k)
             new_out_subseq = computeOutDegreeSubseq(graf, pot_perm, outward[cur_pos - 1], cur_pos, k)
@@ -437,41 +373,13 @@ def nodesSwap(graf, n_inf, perm, outward, all_weight, **mcmc_params):
             denom2 = np.sum(np.log(new_out_subseq[:-1]))
             thr = denom1 - denom2
             
-            
-            
-            # if thr < 0:
-            #     print(outward)
-            #     print(outward[cur_pos: cur_pos + k_mid])
-            #     print(perm)
-            #     print(new_out_subseq)
-            #     print(pot_perm)
-            #     assert False
-            # if (random() < 0.1):
-            #     print(thr)
-            
             acc = acc + np.exp(min(0, thr))
             
             if random() < np.exp(min(0, thr)):
                 perm = pot_perm
                 outward[cur_pos: cur_pos + k] = new_out_subseq
             #mid_switch_end = time.time()
-            #print('mid block', mid_switch_end - mid_switch_start)
-    # print(perm)
-    # # print('\n')
-    # # print(n_inf)
-    # for ind in range(n_inf):
-    #     print(ind)
-    #     v = perm[ind]
-    #     g = getAncestors(graf, v)
-    #     if g[-1] != perm[0]:
-    #         print(v)
-    #         print(getAncestors(graf, v))
-    #         assert False
-    #     for anc in g:
-    #         if anc not in perm[0:ind+1]:
-    #             print(v)
-    #             print(getAncestors(graf, v))
-    #             assert False
+
     return perm, outward, w, acc
 
 
@@ -683,7 +591,6 @@ def computeOutDegreeSubseq(graf, perm, old_out, start, k):
 def computeOutDegreeFromSeq(graf, perm, end=-1):
     """
     
-
     Parameters
     ----------
     graf : igraph object

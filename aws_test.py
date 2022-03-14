@@ -15,9 +15,12 @@ from random import *
 
 import sys
 
-n_inf = int(sys.argv[1])
-q = float(sys.argv[2])
+#n_inf = int(sys.argv[1])
+#q = float(sys.argv[2])
 
+
+n_inf = 60
+q = 1
 
 foo = Graph.Lattice(dim=[100, 100], circular=False)
 
@@ -33,8 +36,8 @@ start = 5050
 eps_ls = [0.3, 0.2, 0.1, 0.05, 0.01] # must be decreasing
 
 mcmc_params = {"M_burn" : 200,
-               "k_root" : 15,
-               "k" : 50,
+               "k_root" : 10,
+               "k" : 30,
                "M_pass" : 1,
                "step_ratio" : 0.4,
                "M_rootsamp" : 10,
